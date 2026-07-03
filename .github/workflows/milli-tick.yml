@@ -1,0 +1,77 @@
+name: MILLI tick
+
+# Runs MILLI's shadow tick every hour and publishes the public feed to the
+# `milli-feed` branch. Shadow mode: no keys, no transactions — a paper
+# portfolio marked against the real Chainlink ETH/USD price on Base.
+# thsnd.xyz/#milli reads milli-feed.json straight from that branch, so the
+# public record stays live with zero servers and nothing running locally.
+#
+# The branch is append-only: one commit per tick, message = the tick line.
+# main stays clean; only code changes land there.
+
+on:
+  schedule:
+    - cron: "5 * * * *" # hourly at :05 UTC (top-of-hour slots get delayed)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: milli-tick
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main (code)
+        uses: actions/checkout@v4
+
+      - name: Checkout milli-feed (state)
+        uses: actions/checkout@v4
+        with:
+          ref: milli-feed
+          path: feed
+
+      - name: Restore state from feed branch
+        run: |
+          cp feed/milli-state.json keeper/milli-state.json || echo "no prior state on branch — starting from main snapshot"
+          cp feed/milli-feed.json website/milli-feed.json || true
+
+      - name: Read Chainlink ETH/USD on Base
+        id: px
+        run: |
+          PX=$(node --input-type=module -e '
+          const rpcs = ["https://mainnet.base.org","https://base-rpc.publicnode.com","https://1rpc.io/base"];
+          const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call",
+            params: [{ to: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70", data: "0x50d25bcd" }, "latest"] });
+          for (const url of rpcs) {
+            try {
+              const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body, signal: AbortSignal.timeout(10000) });
+              const j = await r.json();
+              if (j.result) {
+                const px = Number(BigInt(j.result)) / 1e8;
+                if (px > 100 && px < 100000) { console.log(px.toFixed(2)); process.exit(0); }
+              }
+            } catch {}
+          }
+          console.error("no RPC returned a sane ETH/USD price — skipping tick");
+          process.exit(1);
+          ')
+          echo "px=$PX" >> "$GITHUB_OUTPUT"
+
+      - name: Tick
+        run: node keeper/milli-agent.mjs tick --px "${{ steps.px.outputs.px }}" | tee /tmp/tick.log
+
+      - name: Publish feed branch
+        run: |
+          cp keeper/milli-state.json feed/milli-state.json
+          cp website/milli-feed.json feed/milli-feed.json
+          MSG=$(sed 's/^\[[^]]*\] //' /tmp/tick.log | head -1)
+          cd feed
+          git add -A
+          git -c user.name="milli-bot" -c user.email="milli-bot@users.noreply.github.com" \
+            commit -m "tick: ${MSG:-update}" || { echo "nothing to commit"; exit 0; }
+          git push
