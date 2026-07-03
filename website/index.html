@@ -60,6 +60,9 @@
   label{display:block;color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin:18px 0 8px}
   input[type=text]{width:100%;background:var(--raise);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:16px;padding:12px;outline:none}
   input[type=text]:focus{border-color:var(--text)}
+  .fld{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .fld>span{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.14em;color:var(--dim);width:64px;flex:none}
+  .fld>input{flex:1}
   input[type=range]{width:100%;accent-color:#FFFFFF;margin:8px 0}
   .row{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:6px;gap:12px}
   .row b{color:var(--text);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
@@ -191,6 +194,7 @@
   <nav>
     <a data-page="terminal" class="active">TERMINAL</a>
     <a data-page="market">MARKET</a>
+    <a data-page="pool">POOL</a>
     <a data-page="vault">VAULT</a>
     <a data-page="burn">BURN</a>
     <a data-page="milli">MILLI</a>
@@ -311,6 +315,86 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
       <span class="ca" title="Copy the verified contract address"><span class="full">CA · 0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb</span><b>COPY</b></span>
     </div>
     <div class="note">Execution routes to Aerodrome with the verified contract pre-filled. On your phone? $THSND is on <a href="https://fomo.family/tokens/base/0xf7aa829ed31fe30834e56348e9cd3fbb4687cfdb" target="_blank" rel="noopener" style="text-decoration:underline">fomo ↗</a> — verify the address matches the one above; anything else is an imposter.</div>
+  </section>
+
+  <!-- ============================ POOL ============================ -->
+  <section class="page" id="page-pool">
+    <h1>Liquidity Pool</h1>
+    <div class="sub">THSND/USDC on Aerodrome — every reserve, fee, and position on-chain. Provide liquidity, earn 0.30% of every swap pro-rata to your share.</div>
+
+    <div id="p-banner" style="border:1px dashed var(--text);padding:12px 18px;margin-bottom:24px;font-size:12px;line-height:1.7;opacity:.9">
+      <b>▮ THIN POOL — READ BEFORE DEPOSITING.</b> This pool is small, so any deposit or swap moves the price a lot, and providing liquidity carries impermanent-loss risk if THSND's price moves against USDC. The Aerodrome contracts are audited; the THSND token is immutable but unaudited. Deposits are non-custodial and withdrawable anytime through Aerodrome. Nothing here is yield, a promise, or an invitation — size it like the experiment it is.
+    </div>
+
+    <div class="grid tight">
+      <div class="cell"><div class="k">POOL TVL</div><div class="v" id="p-tvl">—</div></div>
+      <div class="cell"><div class="k">PRICE · THSND</div><div class="v" id="p-price">—</div></div>
+      <div class="cell"><div class="k">24H VOLUME</div><div class="v" id="p-vol">—</div></div>
+      <div class="cell"><div class="k">24H FEES</div><div class="v" id="p-fees">—</div></div>
+    </div>
+    <div class="grid tight">
+      <div class="cell"><div class="k">FEE APR <span style="opacity:.5">· 24H×365</span></div><div class="v" id="p-apr">—</div></div>
+      <div class="cell"><div class="k">POOL THSND</div><div class="v" id="p-r0">—</div></div>
+      <div class="cell"><div class="k">POOL USDC</div><div class="v" id="p-r1">—</div></div>
+      <div class="cell"><div class="k">SWAP FEE</div><div class="v" id="p-fee">0.30%</div></div>
+    </div>
+
+    <div class="chartbox" style="margin-top:8px">
+      <span class="tag" id="p-chart-tag">POOL PRICE · USD</span>
+      <div class="ranges" id="p-ranges" style="margin:8px 0 4px">
+        <button data-r="15m">15M</button><button data-r="1h" class="on">1H</button><button data-r="4h">4H</button><button data-r="1d">1D</button>
+      </div>
+      <div class="cv skeleton" id="p-chart" style="height:320px"></div>
+      <div class="state" id="p-chart-state">SYS: CONNECTING FEED…</div>
+    </div>
+
+    <h2>PROTOCOL-OWNED &amp; YOUR POSITION</h2>
+    <div class="grid tight">
+      <div class="cell"><div class="k">PROTOCOL-OWNED LIQUIDITY</div><div class="v" id="p-pol">—</div></div>
+      <div class="cell"><div class="k">YOUR LP VALUE</div><div class="v" id="p-myval">—</div></div>
+      <div class="cell"><div class="k">YOUR POOL SHARE</div><div class="v" id="p-myshare">—</div></div>
+      <div class="cell"><div class="k">YOUR UNCLAIMED FEES</div><div class="v" id="p-myfees">—</div></div>
+    </div>
+    <div class="note" id="p-pol-note">Protocol-owned liquidity is the treasury's own LP in this pool — real, single-source, disclosed. It deepens the book and earns the same 0.30% every other LP earns.</div>
+
+    <h2>PROVIDE LIQUIDITY</h2>
+    <div style="max-width:560px">
+      <div class="ranges" id="p-mode" style="margin-bottom:16px">
+        <button data-m="balanced" class="on">BALANCED</button><button data-m="zap">ZAP · USDC</button>
+      </div>
+
+      <!-- BALANCED -->
+      <div id="p-pane-balanced">
+        <div class="note" style="margin:0 0 10px">Supply both sides at the current ratio. Type either amount — the other fills to match. No price impact; you add at the pool's price.</div>
+        <label class="fld"><span>THSND</span><input id="p-in-thsnd" type="text" inputmode="decimal" placeholder="0.0" autocomplete="off"></label>
+        <label class="fld"><span>USDC</span><input id="p-in-usdc" type="text" inputmode="decimal" placeholder="0.0" autocomplete="off"></label>
+        <div class="note" id="p-bal-preview" style="margin:8px 0 0">enter an amount to preview your LP position.</div>
+        <button class="act" id="p-btn-add" style="margin-top:14px" disabled>CONNECT WALLET</button>
+      </div>
+
+      <!-- ZAP -->
+      <div id="p-pane-zap" style="display:none">
+        <div class="note" style="margin:0 0 10px">One asset in. Your USDC is split — about half is swapped to THSND, then both sides are added. Leftover dust is refunded to your wallet.</div>
+        <label class="fld"><span>USDC IN</span><input id="p-zap-usdc" type="text" inputmode="decimal" placeholder="0.0" autocomplete="off"></label>
+        <div class="note" id="p-zap-preview" style="margin:8px 0 0">enter a USDC amount to preview the swap and price impact.</div>
+        <label id="p-zap-ack-wrap" style="display:none;align-items:flex-start;gap:8px;margin-top:10px;font-size:12px;line-height:1.5;cursor:pointer">
+          <input type="checkbox" id="p-zap-ack" style="margin-top:2px;flex:none"><span id="p-zap-ack-txt">I understand this trade moves the price significantly.</span>
+        </label>
+        <button class="act" id="p-btn-zap" style="margin-top:14px" disabled>CONNECT WALLET</button>
+      </div>
+
+      <div style="display:flex;gap:14px;align-items:center;margin-top:12px;font-size:12px">
+        <span style="opacity:.6">SLIPPAGE</span>
+        <span class="ranges" id="p-slip" style="margin:0"><button data-s="0.5">0.5%</button><button data-s="1" class="on">1%</button><button data-s="3">3%</button><button data-s="5">5%</button></span>
+      </div>
+      <div class="state" id="p-msg" style="min-height:18px;margin-top:12px;position:static;background:none;border:0;padding:0"></div>
+      <div class="note" style="margin-top:8px">Execution routes through Aerodrome's audited Router (<a href="https://basescan.org/address/0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43" target="_blank" rel="noopener" style="text-decoration:underline">0xcF77…4E43</a>). You sign every transaction in your own wallet; the site never holds funds.</div>
+    </div>
+
+    <h2>HOW LP WORKS</h2>
+    <div class="note" style="font-size:13px;line-height:1.9;max-width:760px">
+      You deposit THSND and USDC in the pool's current ratio and receive LP tokens representing your share. Every swap through the pool pays a <b>0.30% fee</b> that accrues to LPs pro-rata — you claim it or it compounds into the reserves. Your LP value tracks the pool by constant-product math (x·y=k), which means <b>impermanent loss</b>: if THSND's price moves relative to USDC, your position ends up worth less than simply holding the two tokens would have. Fees are the compensation for that risk. There is no lockup — withdraw your share anytime through Aerodrome. This pool has no AERO gauge, so rewards are trading fees only, never emissions.
+    </div>
   </section>
 
   <!-- ============================ VAULT ============================ -->
@@ -646,7 +730,12 @@ const ADDR = {
   weth: "0x4200000000000000000000000000000000000006",
   usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   ethUsdFeed:"0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+  router:  "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43", // Aerodrome Router (verified: has code, defaultFactory matches)
+  factory: "0x420DD381b31aEf6683db6B902084cB0FFECe40Da", // Aerodrome PoolFactory (verified == pool.factory())
+  treasury:"0x539DE6F65dECEB2F491237e3DC030494E517877C", // Safe holding protocol-owned LP
 };
+const POOL_STABLE = false;   // THSND/USDC is a volatile pool
+const POOL_FEE_BPS = 30;     // 0.30% — read live from factory.getFee(); this is the fallback
 const DEPLOY_BLOCK = 48117150;
 const CHAIN = 8453n;
 const MAX_WEEKS = 208;
@@ -673,6 +762,14 @@ const ABI = {
   lock:["function locks(address) view returns (uint128 amount,uint128 power,uint64 end)","function totalLocked() view returns (uint256)","function totalPower() view returns (uint256)","function lock(uint256,uint256)","function withdraw()","function claim()","function earned(address) view returns (uint256)"],
   tier:["function tierOf(address) view returns (uint256)","function discountOf(address) view returns (uint256)"],
   feed:["function latestAnswer() view returns (int256)"],
+  pool:["function getReserves() view returns (uint256,uint256,uint256)","function totalSupply() view returns (uint256)","function balanceOf(address) view returns (uint256)","function token0() view returns (address)","function claimable0(address) view returns (uint256)","function claimable1(address) view returns (uint256)"],
+  factory:["function getFee(address,bool) view returns (uint256)"],
+  router:[
+    "function getAmountsOut(uint256 amountIn,(address from,address to,bool stable,address factory)[] routes) view returns (uint256[])",
+    "function quoteAddLiquidity(address tokenA,address tokenB,bool stable,address _factory,uint256 amountADesired,uint256 amountBDesired) view returns (uint256 amountA,uint256 amountB,uint256 liquidity)",
+    "function addLiquidity(address tokenA,address tokenB,bool stable,uint256 amountADesired,uint256 amountBDesired,uint256 amountAMin,uint256 amountBMin,address to,uint256 deadline) returns (uint256 amountA,uint256 amountB,uint256 liquidity)",
+    "function swapExactTokensForTokens(uint256 amountIn,uint256 amountOutMin,(address from,address to,bool stable,address factory)[] routes,address to,uint256 deadline) returns (uint256[])",
+  ],
 };
 const R = {};
 function buildProviders(){
@@ -683,6 +780,9 @@ function buildProviders(){
   R.feed =new ethers.Contract(ADDR.ethUsdFeed,ABI.feed,read);
   R.weth =new ethers.Contract(ADDR.weth,ABI.token,read);
   R.usdc =new ethers.Contract(ADDR.usdc,ABI.token,read);
+  R.pool =new ethers.Contract(ADDR.pool,ABI.pool,read);
+  R.router=new ethers.Contract(ADDR.router,ABI.router,read);
+  R.factory=new ethers.Contract(ADDR.factory,ABI.factory,read);
 }
 buildProviders();
 const vaultIface = new ethers.Interface([
@@ -1051,9 +1151,197 @@ async function markMilliLive(){
 }
 setInterval(()=>{ if(milliLoaded&&document.visibilityState==="visible"&&$("page-milli").classList.contains("visible")) markMilliLive(); },60000);
 const _goto=goto;
-goto=function(page){ _goto(page); if(page==="milli"&&!milliLoaded) loadMilli(); };
-window.addEventListener("hashchange",()=>{ if(location.hash==="#milli"&&!milliLoaded) loadMilli(); });
+goto=function(page){ _goto(page); if(page==="milli"&&!milliLoaded) loadMilli(); if(page==="pool") loadPool(); };
+window.addEventListener("hashchange",()=>{ if(location.hash==="#milli"&&!milliLoaded) loadMilli(); if(location.hash==="#pool") loadPool(); });
 if(location.hash==="#milli") loadMilli();
+
+/* ================= LIQUIDITY POOL ================= */
+let poolLoaded=false, pSlip=1, pMode="balanced", PS={res0:0n,res1:0n,lp:0n,feeBps:POOL_FEE_BPS,price:0,tvl:0};
+let pSeries=null, pChartRange={tf:"hour",ag:1,limit:168};
+const pu=(s,d)=>{ try{ s=String(s??"").trim().replace(/,/g,""); if(!s||isNaN(+s)||+s<=0) return 0n; return ethers.parseUnits(s,d); }catch(e){ return 0n; } };
+function pMsg(t,err){ const m=$("p-msg"); if(!m) return; m.textContent=t||""; m.style.color=err?"#FFFFFF":"var(--dim)"; }
+function pSyncWallet(){
+  const on=!!signer;
+  const a=$("p-btn-add"), z=$("p-btn-zap");
+  if(a){ a.disabled=false; a.textContent = on ? "ADD LIQUIDITY" : "CONNECT WALLET"; }
+  if(z){ z.disabled=false; z.textContent = on ? "ZAP IN" : "CONNECT WALLET"; }
+}
+async function loadPool(){
+  if(!poolLoaded){
+    poolLoaded=true;
+    // chart
+    if(window.LightweightCharts && !charts["p-chart"]){ mkChart("p-chart"); pSeries=candleSeries(charts["p-chart"]); }
+    // mode toggle
+    $("p-mode").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      $("p-mode").querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+      pMode=b.dataset.m;
+      $("p-pane-balanced").style.display = pMode==="balanced"?"block":"none";
+      $("p-pane-zap").style.display = pMode==="zap"?"block":"none";
+    });
+    // slippage toggle
+    $("p-slip").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      $("p-slip").querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); pSlip=Number(b.dataset.s);
+      pPreviewBalanced(); pPreviewZap();
+    });
+    // chart ranges
+    $("p-ranges").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      $("p-ranges").querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+      pChartRange={"15m":{tf:"minute",ag:15,limit:192},"1h":{tf:"hour",ag:1,limit:168},"4h":{tf:"hour",ag:4,limit:180},"1d":{tf:"day",ag:1,limit:180}}[b.dataset.r];
+      refreshPoolChart();
+    });
+    // balanced inputs — fill the paired side from the pool ratio
+    $("p-in-thsnd").oninput=()=>{ if(PS.price>0){ const t=parseFloat($("p-in-thsnd").value)||0; $("p-in-usdc").value = t>0 ? (t*PS.price).toFixed(6) : ""; } pPreviewBalanced(); };
+    $("p-in-usdc").oninput =()=>{ if(PS.price>0){ const u=parseFloat($("p-in-usdc").value)||0; $("p-in-thsnd").value = u>0 ? (u/PS.price).toFixed(4) : ""; } pPreviewBalanced(); };
+    $("p-zap-usdc").oninput=()=>pPreviewZap();
+    $("p-btn-add").onclick=onAddLiquidity;
+    $("p-btn-zap").onclick=onZap;
+    refreshPoolChart();
+    setInterval(()=>{ if($("page-pool").classList.contains("visible")) refreshPoolStats(); }, 20000);
+  }
+  pSyncWallet(); refreshPoolStats();
+  requestAnimationFrame(()=>{ if(charts["p-chart"]) charts["p-chart"].timeScale().fitContent(); });
+}
+async function refreshPoolStats(){
+  try{
+    const reqs=[R.pool.getReserves(),R.pool.totalSupply(),R.factory.getFee(ADDR.pool,POOL_STABLE),R.pool.balanceOf(ADDR.treasury)];
+    if(me) reqs.push(R.pool.balanceOf(me));
+    const out=await Promise.allSettled(reqs);
+    const g=i=>out[i]&&out[i].status==="fulfilled"?out[i].value:null;
+    const res=g(0), lp=g(1), fee=g(2), treas=g(3), mine=me?g(4):null;
+    if(res){ PS.res0=res[0]; PS.res1=res[1]; }         // token0=USDC(6dp), token1=THSND(18dp)
+    if(lp!=null) PS.lp=lp;
+    if(fee!=null) PS.feeBps=Number(fee);
+    const usdc=Number(PS.res0)/1e6, thsnd=Number(PS.res1)/1e18;
+    PS.price = thsnd>0 ? usdc/thsnd : 0;
+    PS.tvl = usdc*2;
+    $("p-tvl").textContent = usd(PS.tvl);
+    $("p-price").textContent = PS.price?px(PS.price):"—";
+    $("p-r0").textContent = thsnd.toLocaleString(undefined,{maximumFractionDigits:0});
+    $("p-r1").textContent = usdc.toLocaleString(undefined,{maximumFractionDigits:2});
+    $("p-fee").textContent = (PS.feeBps/100).toFixed(2)+"%";
+    // protocol-owned share
+    if(treas!=null && PS.lp>0n){ const polpct=100*Number(treas)/Number(PS.lp); $("p-pol").textContent = polpct.toLocaleString(undefined,{maximumFractionDigits:2})+"%"; }
+    // your position
+    if(me && mine!=null && PS.lp>0n){
+      const share=Number(mine)/Number(PS.lp);
+      $("p-myshare").textContent = (100*share).toLocaleString(undefined,{maximumFractionDigits:4})+"%";
+      $("p-myval").textContent = usd(share*PS.tvl);
+      try{ const [c0,c1]=await Promise.all([R.pool.claimable0(me),R.pool.claimable1(me)]);
+        const fUsdc=Number(c0)/1e6, fThsnd=Number(c1)/1e18; $("p-myfees").textContent = usd(fUsdc + fThsnd*PS.price);
+      }catch(e){ $("p-myfees").textContent="—"; }
+    } else { $("p-myshare").textContent="—"; $("p-myval").textContent="—"; $("p-myfees").textContent = me?"—":"connect wallet"; }
+    // 24h volume + fees + apr from GeckoTerminal
+    try{
+      const j=await gfetch(GT_POOL);
+      const vol=Number(j.data.attributes.volume_usd?.h24 ?? 0);
+      const fees=vol*PS.feeBps/10000;
+      $("p-vol").textContent = usd(vol);
+      $("p-fees").textContent = usd(fees);
+      $("p-apr").textContent = PS.tvl>0 ? (100*fees*365/PS.tvl).toLocaleString(undefined,{maximumFractionDigits:1})+"%" : "—";
+    }catch(e){}
+    pPreviewBalanced(); pPreviewZap(); pSyncWallet();
+  }catch(e){}
+}
+async function refreshPoolChart(){
+  if(!window.LightweightCharts){ libDown("p-chart-state"); return; }
+  if(!charts["p-chart"]){ mkChart("p-chart"); pSeries=candleSeries(charts["p-chart"]); }
+  try{
+    const {tf,ag,limit}=pChartRange;
+    const j=await gfetch(`${GT_POOL}/ohlcv/${tf}?aggregate=${ag}&limit=${limit}&currency=usd&token=${ADDR.token.toLowerCase()}`);
+    const list=j.data?.attributes?.ohlcv_list||[];
+    if(!list.length){ chartState("p-chart-state","SYS: INDEXER WARMING UP — chart draws as trades land."); return; }
+    const data=list.map(x=>({time:x[0],open:x[1],high:x[2],low:x[3],close:x[4]})).sort((a,b)=>a.time-b.time).filter((x,i,a)=>i===0||x.time!==a[i-1].time);
+    pSeries.setData(data); charts["p-chart"].timeScale().fitContent(); chartState("p-chart-state","");
+  }catch(e){ chartState("p-chart-state","SYS: PRICE FEED UNREACHABLE — stats remain live."); }
+}
+function pPreviewBalanced(){
+  const u=parseFloat($("p-in-usdc").value)||0;
+  if(u<=0 || PS.tvl<=0){ $("p-bal-preview").textContent="enter an amount to preview your LP position."; return; }
+  const added=u*2, share=100*added/(PS.tvl+added);
+  $("p-bal-preview").textContent = `deposits ≈ ${usd(added)} of liquidity · ≈ ${share.toLocaleString(undefined,{maximumFractionDigits:3})}% of the pool after. slippage ${pSlip}%.`;
+}
+async function pPreviewZap(){
+  const raw=pu($("p-zap-usdc").value,6);
+  const ackWrap=$("p-zap-ack-wrap");
+  if(raw<=0n || PS.price<=0){ $("p-zap-preview").textContent="enter a USDC amount to preview the swap and price impact."; ackWrap.style.display="none"; return; }
+  const half=raw/2n;
+  try{
+    const routes=[{from:ADDR.usdc,to:ADDR.token,stable:POOL_STABLE,factory:ADDR.factory}];
+    const amounts=await R.router.getAmountsOut(half,routes);
+    const outThsnd=Number(amounts[1])/1e18, inUsdc=Number(half)/1e6;
+    const spotThsnd=inUsdc/PS.price;                 // THSND you'd get with zero impact
+    const impact=spotThsnd>0 ? Math.max(0,(1-outThsnd/spotThsnd))*100 : 0;
+    $("p-zap-preview").innerHTML = `swaps ${usd(inUsdc)} → ≈ ${outThsnd.toLocaleString(undefined,{maximumFractionDigits:0})} THSND, then adds both sides.<br>price impact on the swap: <b>${impact.toLocaleString(undefined,{maximumFractionDigits:2})}%</b> · slippage ${pSlip}%.`;
+    if(impact>5){ ackWrap.style.display="flex"; $("p-zap-ack-txt").textContent=`Price impact is ${impact.toFixed(1)}% — this trade meaningfully moves the price against you. I understand and want to proceed.`; }
+    else { ackWrap.style.display="none"; $("p-zap-ack").checked=true; }
+  }catch(e){ $("p-zap-preview").textContent="preview unavailable — pool may be too thin for this size."; ackWrap.style.display="none"; }
+}
+async function ensureAllowance(tokenAddr,amount){
+  const erc=new ethers.Contract(tokenAddr,ABI.token,signer);
+  const cur=await erc.allowance(me,ADDR.router);
+  if(cur<amount){ pMsg("approving "+(tokenAddr===ADDR.usdc?"USDC":"THSND")+"…"); await (await erc.approve(ADDR.router,amount)).wait(); }
+}
+async function onAddLiquidity(){
+  if(!signer){ openWModal(); return; }
+  const usdcAmt=pu($("p-in-usdc").value,6), thsndAmt=pu($("p-in-thsnd").value,18);
+  if(usdcAmt<=0n||thsndAmt<=0n){ pMsg("enter an amount on both sides.",true); return; }
+  try{
+    const bU=await R.usdc.balanceOf(me), bT=await R.token.balanceOf(me);
+    if(usdcAmt>bU){ pMsg("not enough USDC in your wallet.",true); return; }
+    if(thsndAmt>bT){ pMsg("not enough THSND in your wallet.",true); return; }
+    const slipN=BigInt(Math.round((1-pSlip/100)*1e6));
+    const usdcMin=usdcAmt*slipN/1000000n, thsndMin=thsndAmt*slipN/1000000n;
+    const deadline=BigInt(Math.floor(Date.now()/1000)+1200);
+    await ensureAllowance(ADDR.usdc,usdcAmt);
+    await ensureAllowance(ADDR.token,thsndAmt);
+    const routerW=new ethers.Contract(ADDR.router,ABI.router,signer);
+    pMsg("adding liquidity…");
+    const tx=await routerW.addLiquidity(ADDR.usdc,ADDR.token,POOL_STABLE,usdcAmt,thsndAmt,usdcMin,thsndMin,me,deadline);
+    await tx.wait();
+    pMsg("liquidity added. tx "+tx.hash.slice(0,10)+"…");
+    $("p-in-usdc").value=""; $("p-in-thsnd").value="";
+    refreshPoolStats();
+  }catch(e){ pMsg(e.shortMessage||e.message,true); }
+}
+async function onZap(){
+  if(!signer){ openWModal(); return; }
+  const usdcAmt=pu($("p-zap-usdc").value,6);
+  if(usdcAmt<=0n){ pMsg("enter a USDC amount.",true); return; }
+  if($("p-zap-ack-wrap").style.display!=="none" && !$("p-zap-ack").checked){ pMsg("check the price-impact box to proceed.",true); return; }
+  try{
+    const bU=await R.usdc.balanceOf(me);
+    if(usdcAmt>bU){ pMsg("not enough USDC in your wallet.",true); return; }
+    const half=usdcAmt/2n, rest=usdcAmt-half;
+    const slipMul=BigInt(Math.round((1-pSlip/100)*1e6));
+    const deadline=BigInt(Math.floor(Date.now()/1000)+1200);
+    const routes=[{from:ADDR.usdc,to:ADDR.token,stable:POOL_STABLE,factory:ADDR.factory}];
+    const est=await R.router.getAmountsOut(half,routes);
+    const minOut=est[1]*slipMul/1000000n;
+    await ensureAllowance(ADDR.usdc,usdcAmt);              // covers swap + add
+    const routerW=new ethers.Contract(ADDR.router,ABI.router,signer);
+    pMsg("swapping half to THSND…");
+    const before=await R.token.balanceOf(me);
+    await (await routerW.swapExactTokensForTokens(half,minOut,routes,me,deadline)).wait();
+    const after=await R.token.balanceOf(me);
+    const got=after-before;
+    if(got<=0n){ pMsg("swap returned nothing — aborting before add.",true); return; }
+    // re-read reserves so we add at the post-swap ratio and set correct mins
+    const r=await R.pool.getReserves(); const rU=r[0], rT=r[1];
+    const matchThsnd = rest*rT/rU;                          // THSND that pairs with `rest` USDC now
+    let dU=rest, dT=got, uMin, tMin;
+    if(got>=matchThsnd){ dT=matchThsnd; }                   // USDC binds, THSND dust refunded
+    else { dU=got*rU/rT; }                                  // THSND binds, USDC dust refunded
+    uMin=dU*slipMul/1000000n; tMin=dT*slipMul/1000000n;
+    await ensureAllowance(ADDR.token,got);
+    pMsg("adding both sides…");
+    const tx=await routerW.addLiquidity(ADDR.usdc,ADDR.token,POOL_STABLE,rest,got,uMin,tMin,me,deadline);
+    await tx.wait();
+    pMsg("zapped in. tx "+tx.hash.slice(0,10)+"… · any dust was refunded to your wallet.");
+    $("p-zap-usdc").value=""; pPreviewZap();
+    refreshPoolStats();
+  }catch(e){ pMsg(e.shortMessage||e.message,true); }
+}
+if(location.hash==="#pool") loadPool();
 
 /* ================= wallet — EIP-6963 picker + WalletConnect + mobile deeplinks ================= */
 /* WalletConnect QR needs a (free) project ID from dashboard.reown.com — paste it here to enable: */
