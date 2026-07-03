@@ -954,10 +954,15 @@ async function refreshHistory(){
 }
 
 /* ================= MILLI shadow feed ================= */
-let milliLoaded=false, miSeries=null;
+let milliLoaded=false, miSeries=null, miFeed=null;
+const MILLI_FEED_RAW="https://raw.githubusercontent.com/packrvnner/thsnd/milli-feed/milli-feed.json";
 async function loadMilli(){
   try{
-    const j=await gfetch("milli-feed.json?v="+Math.floor(Date.now()/60000),6000);
+    const bust="?v="+Math.floor(Date.now()/60000);
+    let j=null;
+    try{ j=await gfetch(MILLI_FEED_RAW+bust,6000); }catch(_){}
+    if(!j) j=await gfetch("milli-feed.json"+bust,6000);
+    miFeed=j;
     const st=j.state||{};
     if(j.mode==="live-sealed"){
       $("mi-banner").innerHTML='<b>▮ LIVE — OPERATOR FUNDS ONLY. CLOSED TO DEPOSITS.</b> MILLI now trades the operator’s own money through the (unaudited) on-chain vault. The vault cap equals the operator’s seed, so third-party deposits are impossible — verify on the <a href="https://basescan.org/address/0xF925b09790035E0ef60Cd115eba7E8bDD10981d0" target="_blank" rel="noopener" style="text-decoration:underline">contract</a>. Every holding and trade remains public. Nothing here is yield, a promise, or an invitation to deposit.';
@@ -975,17 +980,7 @@ async function loadMilli(){
     if($("mi-costs")) $("mi-costs").textContent = st.costs!=null ? "−$"+Number(st.costs).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
     if($("mi-lpfees")) $("mi-lpfees").textContent = st.lpFees!=null ? "+$"+Number(st.lpFees).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
     if($("mi-status")) $("mi-status").textContent = st.status ? "is it making money? — "+st.status+"." : "";
-    if($("mi-pos")){
-      const pos = st.positions||[];
-      const hdr = '<tr><th>POSITION</th><th>SIZE</th><th>ENTRY</th><th>VALUE NOW</th><th>P&L</th></tr>';
-      const fmt = n => (n>=0?"+$":"−$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
-      $("mi-pos").innerHTML = hdr + pos.map(p =>
-        `<tr><td>${p.name}${j.mode==="live-sealed"?"":" · SIM"}</td><td>${p.size}</td><td>${p.entry}</td>`+
-        `<td>$${Number(p.value).toLocaleString(undefined,{maximumFractionDigits:2})}</td>`+
-        `<td>${fmt(p.pnl)}${p.note?` <span style="opacity:.6">(${p.note})</span>`:""}</td></tr>`).join("");
-      $("mi-pos-note").textContent = pos.length ? "positions update every tick; value marked at the Chainlink price, LP marked by exact constant-product math."
-                                                : "no open positions — 100% USDC.";
-    }
+    paintMiPos(j.mode, st.positions||[], null);
     $("mi-weth").textContent=Number(st.weth||0).toLocaleString(undefined,{maximumFractionDigits:4});
     $("mi-px").textContent="$"+Number(st.px||0).toLocaleString(undefined,{maximumFractionDigits:2});
     $("mi-upd").textContent=(st.updated||"—").replace("T"," ").slice(0,16);
@@ -1007,11 +1002,52 @@ async function loadMilli(){
     }
     $("mi-tape-note").textContent = trades.length? `showing latest ${trades.length} — full history in the public feed (milli-feed.json).` : "no trades yet — MILLI is in its 48-tick warmup, collecting samples before it's allowed to trade.";
     milliLoaded=true;
+    markMilliLive();
   }catch(e){
     chartState("mi-chart-state","SYS: FEED NOT PUBLISHED YET — the agent starts ticking soon.");
     $("mi-tape-note").textContent="feed unavailable.";
   }
 }
+function paintMiPos(mode,pos,liveNote){
+  if(!$("mi-pos")) return;
+  const hdr='<tr><th>POSITION</th><th>SIZE</th><th>ENTRY</th><th>VALUE NOW</th><th>P&L</th></tr>';
+  const fmt=n=>(n>=0?"+$":"−$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
+  $("mi-pos").innerHTML=hdr+pos.map(p=>
+    `<tr><td>${p.name}${mode==="live-sealed"?"":" · SIM"}</td><td>${p.size}</td><td>${p.entry}</td>`+
+    `<td>$${Number(p.value).toLocaleString(undefined,{maximumFractionDigits:2})}</td>`+
+    `<td>${fmt(Number(p.pnl))}${p.note?` <span style="opacity:.6">(${p.note})</span>`:""}</td></tr>`).join("");
+  $("mi-pos-note").textContent = liveNote || (pos.length? "positions update every tick; value marked at the Chainlink price, LP marked by exact constant-product math."
+                                                        : "no open positions — 100% USDC.");
+}
+/* live mark — between ticks, re-price the open book in the browser at the current
+   Chainlink price (read straight from the feed contract). Sizes only change when
+   the agent ticks; WETH re-prices linearly, the LP sleeve by constant-product
+   math (value ∝ √price). LP fees accrue only per tick. */
+async function markMilliLive(){
+  try{
+    if(!miFeed||!miFeed.state||!R.feed) return;
+    const st=miFeed.state, tickPx=Number(st.px||0);
+    if(!(tickPx>0)) return;
+    const live=Number(await R.feed.latestAnswer())/1e8;
+    if(!(live>100&&live<100000)) return;
+    let sum=0;
+    const pos=(st.positions||[]).map(p=>{
+      const v=Number(p.value)||0;
+      const nv=/LP/.test(p.name)? v*Math.sqrt(live/tickPx) : /WETH/.test(p.name)? v*(live/tickPx) : v;
+      sum+=nv;
+      return {...p, value:nv, pnl:(Number(p.pnl)||0)+(nv-v)};
+    });
+    const nav=Number(st.usdc||0)+sum, start=Number(miFeed.startNav||10000);
+    $("mi-nav").textContent="$"+nav.toLocaleString(undefined,{maximumFractionDigits:2});
+    const pnl=100*(nav-start)/start;
+    $("mi-pnl").textContent=(pnl>=0?"▲ ":"▼ ")+Math.abs(pnl).toFixed(2)+"%";
+    $("mi-expo").textContent=(nav>0?100*Number(st.weth||0)*live/nav:0).toFixed(1)+"%";
+    $("mi-px").textContent="$"+live.toLocaleString(undefined,{maximumFractionDigits:2});
+    const hm=new Date().toISOString().slice(11,16);
+    paintMiPos(miFeed.mode,pos,pos.length?`marked live at Chainlink $${live.toLocaleString(undefined,{maximumFractionDigits:2})} (${hm} UTC) — sizes change only on the hourly tick; LP re-priced by constant-product math, fees accrue per tick.`:null);
+  }catch(_){}
+}
+setInterval(()=>{ if(milliLoaded&&document.visibilityState==="visible"&&$("page-milli").classList.contains("visible")) markMilliLive(); },60000);
 const _goto=goto;
 goto=function(page){ _goto(page); if(page==="milli"&&!milliLoaded) loadMilli(); };
 window.addEventListener("hashchange",()=>{ if(location.hash==="#milli"&&!milliLoaded) loadMilli(); });
