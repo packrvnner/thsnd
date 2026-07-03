@@ -1260,21 +1260,24 @@ function pPreviewBalanced(){
   const added=u*2, share=100*added/(PS.tvl+added);
   $("p-bal-preview").textContent = `deposits ≈ ${usd(added)} of liquidity · ≈ ${share.toLocaleString(undefined,{maximumFractionDigits:3})}% of the pool after. slippage ${pSlip}%.`;
 }
+let pZapSeq=0;
 async function pPreviewZap(){
   const raw=pu($("p-zap-usdc").value,6);
   const ackWrap=$("p-zap-ack-wrap");
   if(raw<=0n || PS.price<=0){ $("p-zap-preview").textContent="enter a USDC amount to preview the swap and price impact."; ackWrap.style.display="none"; return; }
   const half=raw/2n;
+  const seq=++pZapSeq;                                 // only the latest call paints
   try{
     const routes=[{from:ADDR.usdc,to:ADDR.token,stable:POOL_STABLE,factory:ADDR.factory}];
     const amounts=await R.router.getAmountsOut(half,routes);
+    if(seq!==pZapSeq) return;                          // a newer keystroke superseded this one
     const outThsnd=Number(amounts[1])/1e18, inUsdc=Number(half)/1e6;
     const spotThsnd=inUsdc/PS.price;                 // THSND you'd get with zero impact
     const impact=spotThsnd>0 ? Math.max(0,(1-outThsnd/spotThsnd))*100 : 0;
     $("p-zap-preview").innerHTML = `swaps ${usd(inUsdc)} → ≈ ${outThsnd.toLocaleString(undefined,{maximumFractionDigits:0})} THSND, then adds both sides.<br>price impact on the swap: <b>${impact.toLocaleString(undefined,{maximumFractionDigits:2})}%</b> · slippage ${pSlip}%.`;
     if(impact>5){ ackWrap.style.display="flex"; $("p-zap-ack-txt").textContent=`Price impact is ${impact.toFixed(1)}% — this trade meaningfully moves the price against you. I understand and want to proceed.`; }
     else { ackWrap.style.display="none"; $("p-zap-ack").checked=true; }
-  }catch(e){ $("p-zap-preview").textContent="preview unavailable — pool may be too thin for this size."; ackWrap.style.display="none"; }
+  }catch(e){ if(seq!==pZapSeq) return; $("p-zap-preview").textContent="preview unavailable — pool may be too thin for this size."; ackWrap.style.display="none"; }
 }
 async function ensureAllowance(tokenAddr,amount){
   const erc=new ethers.Contract(tokenAddr,ABI.token,signer);
