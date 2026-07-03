@@ -1,0 +1,49 @@
+name: Deploy site to GitHub Pages
+
+# Publishes website/ to GitHub Pages (thsnd.xyz) whenever site files change
+# on main. The MILLI feed does NOT redeploy the site — the page fetches it
+# straight from the milli-feed branch, so hosting never ticks.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage site files
+        run: |
+          mkdir _site
+          cp -r website/assets _site/assets
+          cp website/index.html _site/
+          cp website/milli-feed.json _site/ || true
+          cp website/privacy.html _site/ || true
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
