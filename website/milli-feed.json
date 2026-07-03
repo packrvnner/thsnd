@@ -83,14 +83,20 @@
     "fees": 0,
     "opened": 1783094935
   },
+  "costsPaid": 4.5,
+  "lpFeesEarned": 0,
   "state": {
     "usdc": 7000,
     "weth": 0,
     "lp": 2995.5,
+    "costs": 4.5,
+    "lpFees": 0,
+    "warmup": "11/48",
+    "status": "down 0.04% since start · $4.5 paid in simulated costs · $0 earned in simulated LP fees · momentum sleeve in warmup (11/48) — not allowed to trade yet",
     "lpAprEst": 0.1,
     "strategy": "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
     "px": 1728.45,
     "nav": 9995.5,
-    "updated": "2026-07-03T16:08:55.701Z"
+    "updated": "2026-07-03T16:33:32.687Z"
   }
 }

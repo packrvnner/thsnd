@@ -108,9 +108,16 @@ async function liveContext() {
 
 // ---------------------------------------------------------------- state
 function loadShadow() {
-  if (existsSync(SHADOW_STATE)) return JSON.parse(readFileSync(SHADOW_STATE, "utf8"));
-  return { mode: "shadow", started: nowIso(), startNav: START_NAV, usdc: START_NAV, weth: 0,
-           prices: [], navHistory: [], trades: [], ticks: 0 };
+  let s;
+  if (existsSync(SHADOW_STATE)) s = JSON.parse(readFileSync(SHADOW_STATE, "utf8"));
+  else s = { mode: "shadow", started: nowIso(), startNav: START_NAV, usdc: START_NAV, weth: 0,
+             prices: [], navHistory: [], trades: [], ticks: 0 };
+  if (s.costsPaid == null) { // backfill from tape: LP legs cost COST_BPS/2, spot legs COST_BPS
+    s.costsPaid = (s.trades || []).reduce((c, t) =>
+      c + (t.side?.startsWith("LP") ? (t.usd || 0) * (COST_BPS / 2) : (t.usdc || t.usd || 0) * COST_BPS) / 10_000, 0);
+  }
+  if (s.lpFeesEarned == null) s.lpFeesEarned = s.lp?.fees || 0;
+  return s;
 }
 
 function loadLive(startNavUsd) {
@@ -158,7 +165,11 @@ function lpValue(lp, px) { return lp ? lp.k * Math.sqrt(px) + lp.fees : 0; }
 
 function manageLp(s, px, navUsd, t) {
   const events = [];
-  if (s.lp) s.lp.fees += lpValue(s.lp, px) * LP_APR_EST / TICKS_PER_YEAR; // hourly fee accrual on current value
+  if (s.lp) {
+    const acc = lpValue(s.lp, px) * LP_APR_EST / TICKS_PER_YEAR; // hourly fee accrual on current value
+    s.lp.fees += acc;
+    s.lpFeesEarned = (s.lpFeesEarned || 0) + acc;
+  }
   const v = lpValue(s.lp, px);
   const target = navUsd * LP_TARGET;
   const drifted = s.lp && Math.abs(v - target) / target > LP_REBAL_DRIFT;
@@ -167,6 +178,7 @@ function manageLp(s, px, navUsd, t) {
     const notional = Math.min(navUsd * LP_TARGET, s.usdc);
     if (notional >= Math.max(MIN_TRADE_FLOOR, navUsd * MIN_TRADE_BPS / 10_000)) {
       const cost = notional * (COST_BPS / 2) / 10_000;        // half the notional swaps to WETH on entry
+      s.costsPaid = (s.costsPaid || 0) + cost;
       s.usdc -= notional;
       s.lp = { entryPx: px, k: (notional - cost) / Math.sqrt(px), fees: 0, opened: t };
       events.push({ t, side: "LP-OPEN", usd: round(notional), px: round(px), reason: `deploy ${LP_TARGET * 100}% of NAV to WETH/USDC LP — est ${LP_APR_EST * 100}% APR (simulated, disclosed), IL priced exactly`, navAfter: 0 });
@@ -194,11 +206,13 @@ async function shadowTick(mock, note) {
       const spend = Math.min(d.deltaUsd, s.usdc);
       const got = (spend / px) * (1 - COST_BPS / 10_000);
       s.usdc -= spend; s.weth += got;
+      s.costsPaid = (s.costsPaid || 0) + spend * COST_BPS / 10_000;
       s.trades.push({ t, side: "BUY", usdc: round(spend), weth: round(got, 6), px: round(px), reason: d.reason, navAfter: round(nav()) });
       action = `BUY ${round(spend)} USDC → ${round(got, 6)} WETH @ ${round(px)}`;
     } else {
       const sellWeth = Math.min(-d.deltaUsd / px, s.weth);
       const got = sellWeth * px * (1 - COST_BPS / 10_000);
+      s.costsPaid = (s.costsPaid || 0) + sellWeth * px * COST_BPS / 10_000;
       s.weth -= sellWeth; s.usdc += got;
       s.trades.push({ t, side: "SELL", usdc: round(got), weth: round(sellWeth, 6), px: round(px), reason: d.reason, navAfter: round(nav()) });
       action = `SELL ${round(sellWeth, 6)} WETH → ${round(got)} USDC @ ${round(px)}`;
@@ -207,7 +221,14 @@ async function shadowTick(mock, note) {
   s.navHistory.push({ t, nav: round(nav()), px: round(px) });
   if (s.navHistory.length > 5000) s.navHistory.shift();
   writeFileSync(SHADOW_STATE, JSON.stringify(s, null, 2));
+  const pnl = 100 * (nav() - s.startNav) / s.startNav;
+  const warm = s.prices.length < SLOW;
+  const status = `${pnl >= 0 ? "up" : "down"} ${Math.abs(pnl).toFixed(2)}% since start · ` +
+    `$${round(s.costsPaid)} paid in simulated costs · $${round(s.lpFeesEarned)} earned in simulated LP fees · ` +
+    `momentum sleeve ${warm ? `in warmup (${s.prices.length}/${SLOW}) — not allowed to trade yet` : (s.weth > 0 ? "LONG" : "FLAT")}`;
   publish(s, { usdc: round(s.usdc), weth: round(s.weth, 6), lp: round(lpValue(s.lp, px)),
+               costs: round(s.costsPaid), lpFees: round(s.lpFeesEarned, 4),
+               warmup: warm ? `${s.prices.length}/${SLOW}` : null, status,
                lpAprEst: LP_APR_EST, strategy: "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
                px: round(px), nav: round(nav()) });
   console.log(`[milli ${nowIso()}] SHADOW px=${round(px)} nav=${round(nav())} lp=${round(lpValue(s.lp, px))} | ${action}${note ? " | " + note : ""}`);

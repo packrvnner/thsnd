@@ -95,5 +95,7 @@
     "k": 72.05114942385458,
     "fees": 0,
     "opened": 1783094935
-  }
+  },
+  "costsPaid": 4.5,
+  "lpFeesEarned": 0
 }

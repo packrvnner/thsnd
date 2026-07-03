@@ -447,6 +447,7 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
     <div id="mi-banner" style="border:1px solid var(--text);padding:14px 18px;margin-bottom:24px;font-size:12px;line-height:1.7">
       <b>▮ SHADOW MODE — PAPER TRADING. NO REAL FUNDS.</b> MILLI trades a simulated $10,000 against real market prices to build a public track record before the audited vault opens (<a data-page="roadmap" style="text-decoration:underline;cursor:pointer">roadmap</a>, phase 3). Nothing here is yield, a promise, or an invitation to deposit.
     </div>
+    <div id="mi-status" style="border:1px dashed var(--text);padding:10px 18px;margin:-12px 0 24px;font-size:12px;line-height:1.6;opacity:.85">is it making money? —</div>
 
     <div class="grid tight">
       <div class="cell"><div class="k" id="mi-nav-label">NAV · PAPER</div><div class="v" id="mi-nav">—</div></div>
@@ -457,6 +458,8 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
     <div class="grid tight">
       <div class="cell"><div class="k">USDC · PAPER</div><div class="v" id="mi-usdc">—</div></div>
       <div class="cell"><div class="k">LP SLEEVE (SIM)</div><div class="v" id="mi-lp">—</div></div>
+      <div class="cell"><div class="k">COSTS PAID (SIM)</div><div class="v" id="mi-costs">—</div></div>
+      <div class="cell"><div class="k">LP FEES EARNED (SIM)</div><div class="v" id="mi-lpfees">—</div></div>
       <div class="cell"><div class="k">WETH · PAPER</div><div class="v" id="mi-weth">—</div></div>
       <div class="cell"><div class="k">ETH PRICE FEED</div><div class="v" id="mi-px">—</div></div>
       <div class="cell"><div class="k">LAST TICK</div><div class="v" id="mi-upd" style="font-size:13px">—</div></div>
@@ -963,6 +966,9 @@ async function loadMilli(){
     $("mi-trades").textContent=(j.trades||[]).length;
     $("mi-usdc").textContent=Number(st.usdc||0).toLocaleString(undefined,{maximumFractionDigits:2});
     if($("mi-lp")) $("mi-lp").textContent = st.lp!=null ? "$"+Number(st.lp).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
+    if($("mi-costs")) $("mi-costs").textContent = st.costs!=null ? "−$"+Number(st.costs).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
+    if($("mi-lpfees")) $("mi-lpfees").textContent = st.lpFees!=null ? "+$"+Number(st.lpFees).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
+    if($("mi-status")) $("mi-status").textContent = st.status ? "is it making money? — "+st.status+"." : "";
     $("mi-weth").textContent=Number(st.weth||0).toLocaleString(undefined,{maximumFractionDigits:4});
     $("mi-px").textContent="$"+Number(st.px||0).toLocaleString(undefined,{maximumFractionDigits:2});
     $("mi-upd").textContent=(st.updated||"—").replace("T"," ").slice(0,16);
