@@ -2,7 +2,7 @@
   "mode": "shadow",
   "started": "2026-07-03T02:01:24Z",
   "startNav": 10000,
-  "usdc": 10000,
+  "usdc": 7000,
   "weth": 0,
   "prices": [
     1701.85,
@@ -14,7 +14,8 @@
     1736.0810637,
     1736.0810637,
     1741.1,
-    1737.75
+    1737.75,
+    1728.45
   ],
   "navHistory": [
     {
@@ -71,8 +72,28 @@
       "t": 1783091004,
       "nav": 10000,
       "px": 1737.75
+    },
+    {
+      "t": 1783094935,
+      "nav": 9995.5,
+      "px": 1728.45
     }
   ],
-  "trades": [],
-  "ticks": 10
+  "trades": [
+    {
+      "t": 1783094935,
+      "side": "LP-OPEN",
+      "usd": 3000,
+      "px": 1728.45,
+      "reason": "deploy 30% of NAV to WETH/USDC LP — est 10% APR (simulated, disclosed), IL priced exactly",
+      "navAfter": 9995.5
+    }
+  ],
+  "ticks": 11,
+  "lp": {
+    "entryPx": 1728.45,
+    "k": 72.05114942385458,
+    "fees": 0,
+    "opened": 1783094935
+  }
 }

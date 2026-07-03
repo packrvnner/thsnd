@@ -88,3 +88,21 @@ Pooled funds + a manager + expectation of profit from others' efforts is the tex
 2. Fee split of the 100%: proposed 50/30/20 (lockers/burn/ops) — tune.
 3. mTHSND locking: not needed for exposure (shares appreciate), but locked mTHSND could count 2× toward execution tiers like THSND does — nice cross-sell, adds scope. Defer to v2?
 4. Agent name/character: MILLI (one-thousandth) fits the brand grid. Sign-off?
+
+## LP extension (v2 — written 2026-07-03, UNDEPLOYED, in audit scope)
+
+Two new contracts let the vault hold Aerodrome volatile WETH/USDC LP as a listed asset,
+entered/exited through the normal `trade()` path:
+
+- `FairLpOracle.sol` — IPriceFeed-compatible LP pricing via the fair-reserves method
+  (2·√(p0·p1·r0·r1)/supply, Chainlink prices only). Flash-skewing pool reserves cannot
+  move the answer (constant-k invariance); volatile pools only; surfaces the OLDER of the
+  two feed timestamps so the vault's maxFeedAge covers both legs.
+- `AeroLpAdapter.sol` — IRouteAdapter zap: USDC→(half swap)→addLiquidity→LP to vault,
+  and the reverse. Stateless, holds nothing between calls. Router-leg mins are 0 BY
+  DESIGN — the vault's minOut + oracle-value floor + per-trade cap bound sandwich loss;
+  do not reuse outside the vault.
+
+Tests: `test/AeroLpAdapter.t.sol` (11 cases: fair-price math, skew resistance, zap
+round-trips, vault integration through trade() caps). Pre-deploy requirements: published
+audit of both files + a Base-mainnet fork test against the real router/pool.
