@@ -1,0 +1,130 @@
+{
+  "mode": "shadow",
+  "started": "2026-07-03T02:01:24Z",
+  "startNav": 10000,
+  "usdc": 7000,
+  "weth": 0,
+  "navHistory": [
+    {
+      "t": 1783044084,
+      "nav": 10000,
+      "px": 1712.35
+    },
+    {
+      "t": 1783048126,
+      "nav": 10000,
+      "px": 1701.85
+    },
+    {
+      "t": 1783051727,
+      "nav": 10000,
+      "px": 1705.18
+    },
+    {
+      "t": 1783058911,
+      "nav": 10000,
+      "px": 1717.58
+    },
+    {
+      "t": 1783066136,
+      "nav": 10000,
+      "px": 1715.74
+    },
+    {
+      "t": 1783069387,
+      "nav": 10000,
+      "px": 1717
+    },
+    {
+      "t": 1783073057,
+      "nav": 10000,
+      "px": 1726.85
+    },
+    {
+      "t": 1783084462,
+      "nav": 10000,
+      "px": 1736.08
+    },
+    {
+      "t": 1783084540,
+      "nav": 10000,
+      "px": 1736.08
+    },
+    {
+      "t": 1783087688,
+      "nav": 10000,
+      "px": 1741.1
+    },
+    {
+      "t": 1783091004,
+      "nav": 10000,
+      "px": 1737.75
+    },
+    {
+      "t": 1783094935,
+      "nav": 9995.5,
+      "px": 1728.45
+    },
+    {
+      "t": 1783098532,
+      "nav": 10001.2,
+      "px": 1735
+    },
+    {
+      "t": 1783102146,
+      "nav": 10001.8,
+      "px": 1735.65
+    },
+    {
+      "t": 1783105362,
+      "nav": 10003.11,
+      "px": 1737.13
+    }
+  ],
+  "trades": [
+    {
+      "t": 1783094935,
+      "side": "LP-OPEN",
+      "usd": 3000,
+      "px": 1728.45,
+      "reason": "deploy 30% of NAV to WETH/USDC LP — est 10% APR (simulated, disclosed), IL priced exactly",
+      "navAfter": 9995.5
+    }
+  ],
+  "ticks": 14,
+  "lp": {
+    "entryPx": 1728.45,
+    "k": 72.05114942385458,
+    "fees": 0.10280841178841066,
+    "opened": 1783094935,
+    "basis": 3000
+  },
+  "costsPaid": 4.5,
+  "lpFeesEarned": 0.10280841178841066,
+  "wethBasisUsd": 0,
+  "state": {
+    "usdc": 7000,
+    "weth": 0,
+    "lp": 3003.11,
+    "positions": [
+      {
+        "name": "WETH/USDC LP",
+        "size": "50/50 pool share",
+        "entry": "$3000 @ ETH 1728.45",
+        "opened": 1783094935,
+        "value": 3003.11,
+        "pnl": 3.11,
+        "note": "incl. fees +$0.1 · IL priced exactly"
+      }
+    ],
+    "costs": 4.5,
+    "lpFees": 0.1028,
+    "warmup": "14/48",
+    "status": "up 0.03% since start · $4.5 paid in simulated costs · $0.1 earned in simulated LP fees · momentum sleeve in warmup (14/48) — not allowed to trade yet",
+    "lpAprEst": 0.1,
+    "strategy": "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
+    "px": 1737.13,
+    "nav": 10003.11,
+    "updated": "2026-07-03T19:02:42.213Z"
+  }
+}
