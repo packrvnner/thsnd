@@ -322,10 +322,6 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
     <h1>Liquidity Pool</h1>
     <div class="sub">THSND/USDC on Aerodrome — every reserve, fee, and position on-chain. Provide liquidity, earn 0.30% of every swap pro-rata to your share.</div>
 
-    <div id="p-banner" style="border:1px dashed var(--text);padding:12px 18px;margin-bottom:24px;font-size:12px;line-height:1.7;opacity:.9">
-      <b>▮ THIN POOL — READ BEFORE DEPOSITING.</b> This pool is small, so any deposit or swap moves the price a lot, and providing liquidity carries impermanent-loss risk if THSND's price moves against USDC. The Aerodrome contracts are audited; the THSND token is immutable but unaudited. Deposits are non-custodial and withdrawable anytime through Aerodrome. Nothing here is yield, a promise, or an invitation — size it like the experiment it is.
-    </div>
-
     <div class="grid tight">
       <div class="cell"><div class="k">POOL TVL</div><div class="v" id="p-tvl">—</div></div>
       <div class="cell"><div class="k">PRICE · THSND</div><div class="v" id="p-price">—</div></div>
@@ -394,6 +390,10 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
     <h2>HOW LP WORKS</h2>
     <div class="note" style="font-size:13px;line-height:1.9;max-width:760px">
       You deposit THSND and USDC in the pool's current ratio and receive LP tokens representing your share. Every swap through the pool pays a <b>0.30% fee</b> that accrues to LPs pro-rata — you claim it or it compounds into the reserves. Your LP value tracks the pool by constant-product math (x·y=k), which means <b>impermanent loss</b>: if THSND's price moves relative to USDC, your position ends up worth less than simply holding the two tokens would have. Fees are the compensation for that risk. There is no lockup — withdraw your share anytime through Aerodrome. This pool has no AERO gauge, so rewards are trading fees only, never emissions.
+    </div>
+
+    <div id="p-banner" style="margin-top:36px;border-top:1px solid var(--line);padding-top:14px;font-size:11px;line-height:1.6;opacity:.55;max-width:820px">
+      <b>▮ THIN POOL — READ BEFORE DEPOSITING.</b> This pool is small, so any deposit or swap moves the price a lot, and providing liquidity carries impermanent-loss risk if THSND's price moves against USDC. The Aerodrome contracts are audited; the THSND token is immutable but unaudited. Deposits are non-custodial and withdrawable anytime through Aerodrome. Nothing here is yield, a promise, or an invitation — size it like the experiment it is.
     </div>
   </section>
 
@@ -528,11 +528,6 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
     <h1>MILLI</h1>
     <div class="sub">The thousandth trader — an agent portfolio where every holding and every trade is public. Building its track record in the open.</div>
 
-    <div id="mi-banner" style="border:1px solid var(--text);padding:14px 18px;margin-bottom:24px;font-size:12px;line-height:1.7">
-      <b>▮ SHADOW MODE — PAPER TRADING. NO REAL FUNDS.</b> MILLI trades a simulated $10,000 against real market prices to build a public track record before the audited vault opens (<a data-page="roadmap" style="text-decoration:underline;cursor:pointer">roadmap</a>, phase 3). Nothing here is yield, a promise, or an invitation to deposit.
-    </div>
-    <div id="mi-status" style="border:1px dashed var(--text);padding:10px 18px;margin:-12px 0 24px;font-size:12px;line-height:1.6;opacity:.85">is it making money? —</div>
-
     <div class="grid tight">
       <div class="cell"><div class="k" id="mi-nav-label">NAV · PAPER</div><div class="v" id="mi-nav">—</div></div>
       <div class="cell"><div class="k">P&amp;L SINCE START</div><div class="v" id="mi-pnl">—</div></div>
@@ -571,6 +566,13 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
     <div class="note" style="font-size:13px;line-height:1.9;max-width:760px">
       MILLI is the agent that will run the THSND ecosystem's second vault: an ERC-4626 portfolio (USDC in, mTHSND shares out) that trades 24/7 through on-chain whitelists and caps — every position public by construction, because the portfolio is an address. Its fees (2% management · 15% over high-water mark · 0.25% exit, hard-capped in code) stream to vTHSND lockers as WETH and to the burn engine. The vault contracts are written and tested (23/23); they take real deposits only after an independent audit.<br><br>
       <b>The v1 strategy is fully public:</b> 12/48-tick SMA momentum on ETH, max 50% exposure, moves in ≤10%-of-NAV steps (the real vault's per-trade cap), 0.30% simulated costs per side. No discretion, no black box — the code is the disclosure, and the shadow record you see here includes every losing trade.
+    </div>
+
+    <div style="margin-top:36px;border-top:1px solid var(--line);padding-top:14px;max-width:820px">
+      <div id="mi-banner" style="font-size:11px;line-height:1.6;opacity:.55">
+        <b>▮ SHADOW MODE — PAPER TRADING. NO REAL FUNDS.</b> MILLI trades a simulated $10,000 against real market prices to build a public track record before the audited vault opens (<a data-page="roadmap" style="text-decoration:underline;cursor:pointer">roadmap</a>, phase 3). Nothing here is yield, a promise, or an invitation to deposit.
+      </div>
+      <div id="mi-status" style="font-size:11px;line-height:1.6;opacity:.55;margin-top:6px">is it making money? —</div>
     </div>
   </section>
 
