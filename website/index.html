@@ -997,7 +997,9 @@ async function loadMilli(){
     const trades=(j.trades||[]).slice(-50).reverse();
     for(const tr of trades){
       const row=document.createElement("tr");
-      row.innerHTML=`<td>${new Date(tr.t*1000).toISOString().replace("T"," ").slice(0,16)}</td><td><b>${tr.side}</b></td><td>${Number(tr.usdc).toLocaleString()} USDC ↔ ${Number(tr.weth).toLocaleString(undefined,{maximumFractionDigits:4})} WETH</td><td>$${Number(tr.px).toLocaleString()}</td><td class="addr" style="font-size:11px">${tr.reason||""}</td>`;
+      const sz = tr.usdc!=null ? `${Number(tr.usdc).toLocaleString()} USDC ↔ ${Number(tr.weth).toLocaleString(undefined,{maximumFractionDigits:4})} WETH`
+               : tr.usd!=null ? `$${Number(tr.usd).toLocaleString()}${/LP/.test(tr.side||"")?" · LP sleeve":""}` : "—";
+      row.innerHTML=`<td>${new Date(tr.t*1000).toISOString().replace("T"," ").slice(0,16)}</td><td><b>${tr.side}</b></td><td>${sz}</td><td>$${Number(tr.px).toLocaleString()}</td><td class="addr" style="font-size:11px">${tr.reason||""}</td>`;
       tape.appendChild(row);
     }
     $("mi-tape-note").textContent = trades.length? `showing latest ${trades.length} — full history in the public feed (milli-feed.json).` : "no trades yet — MILLI is in its 48-tick warmup, collecting samples before it's allowed to trade.";
