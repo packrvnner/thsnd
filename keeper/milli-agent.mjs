@@ -117,7 +117,26 @@ function loadShadow() {
       c + (t.side?.startsWith("LP") ? (t.usd || 0) * (COST_BPS / 2) : (t.usdc || t.usd || 0) * COST_BPS) / 10_000, 0);
   }
   if (s.lpFeesEarned == null) s.lpFeesEarned = s.lp?.fees || 0;
+  if (s.lp && s.lp.basis == null) s.lp.basis = round(s.lp.k * Math.sqrt(s.lp.entryPx) / (1 - COST_BPS / 2 / 10_000));
+  if (s.wethBasisUsd == null) s.wethBasisUsd = 0;
   return s;
+}
+
+// what the book holds right now, entry vs value, per sleeve
+function buildPositions(s, px) {
+  const pos = [];
+  if (s.lp) {
+    const v = lpValue(s.lp, px);
+    pos.push({ name: "WETH/USDC LP", size: "50/50 pool share", entry: `$${round(s.lp.basis)} @ ETH ${round(s.lp.entryPx)}`,
+               opened: s.lp.opened, value: round(v), pnl: round(v - s.lp.basis),
+               note: `incl. fees +$${round(s.lp.fees)} · IL priced exactly` });
+  }
+  if (s.weth > 1e-9) {
+    const v = s.weth * px;
+    pos.push({ name: "WETH · momentum", size: `${round(s.weth, 4)} WETH`, entry: `avg $${round(s.wethBasisUsd / s.weth)}`,
+               value: round(v), pnl: round(v - s.wethBasisUsd) });
+  }
+  return pos;
 }
 
 function loadLive(startNavUsd) {
@@ -180,7 +199,7 @@ function manageLp(s, px, navUsd, t) {
       const cost = notional * (COST_BPS / 2) / 10_000;        // half the notional swaps to WETH on entry
       s.costsPaid = (s.costsPaid || 0) + cost;
       s.usdc -= notional;
-      s.lp = { entryPx: px, k: (notional - cost) / Math.sqrt(px), fees: 0, opened: t };
+      s.lp = { entryPx: px, k: (notional - cost) / Math.sqrt(px), fees: 0, opened: t, basis: notional };
       events.push({ t, side: "LP-OPEN", usd: round(notional), px: round(px), reason: `deploy ${LP_TARGET * 100}% of NAV to WETH/USDC LP — est ${LP_APR_EST * 100}% APR (simulated, disclosed), IL priced exactly`, navAfter: 0 });
     }
   }
@@ -206,6 +225,7 @@ async function shadowTick(mock, note) {
       const spend = Math.min(d.deltaUsd, s.usdc);
       const got = (spend / px) * (1 - COST_BPS / 10_000);
       s.usdc -= spend; s.weth += got;
+      s.wethBasisUsd = (s.wethBasisUsd || 0) + spend;
       s.costsPaid = (s.costsPaid || 0) + spend * COST_BPS / 10_000;
       s.trades.push({ t, side: "BUY", usdc: round(spend), weth: round(got, 6), px: round(px), reason: d.reason, navAfter: round(nav()) });
       action = `BUY ${round(spend)} USDC → ${round(got, 6)} WETH @ ${round(px)}`;
@@ -213,7 +233,9 @@ async function shadowTick(mock, note) {
       const sellWeth = Math.min(-d.deltaUsd / px, s.weth);
       const got = sellWeth * px * (1 - COST_BPS / 10_000);
       s.costsPaid = (s.costsPaid || 0) + sellWeth * px * COST_BPS / 10_000;
+      s.wethBasisUsd = s.weth > 0 ? (s.wethBasisUsd || 0) * (1 - sellWeth / s.weth) : 0;
       s.weth -= sellWeth; s.usdc += got;
+      if (s.weth < 1e-9) { s.weth = 0; s.wethBasisUsd = 0; }
       s.trades.push({ t, side: "SELL", usdc: round(got), weth: round(sellWeth, 6), px: round(px), reason: d.reason, navAfter: round(nav()) });
       action = `SELL ${round(sellWeth, 6)} WETH → ${round(got)} USDC @ ${round(px)}`;
     }
@@ -227,6 +249,7 @@ async function shadowTick(mock, note) {
     `$${round(s.costsPaid)} paid in simulated costs · $${round(s.lpFeesEarned)} earned in simulated LP fees · ` +
     `momentum sleeve ${warm ? `in warmup (${s.prices.length}/${SLOW}) — not allowed to trade yet` : (s.weth > 0 ? "LONG" : "FLAT")}`;
   publish(s, { usdc: round(s.usdc), weth: round(s.weth, 6), lp: round(lpValue(s.lp, px)),
+               positions: buildPositions(s, px),
                costs: round(s.costsPaid), lpFees: round(s.lpFeesEarned, 4),
                warmup: warm ? `${s.prices.length}/${SLOW}` : null, status,
                lpAprEst: LP_APR_EST, strategy: "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
@@ -257,6 +280,7 @@ async function liveTick(ctx, dry) {
   const notice = gas < 500_000_000_000_000n ? "executor gas low (<0.0005 ETH) — top up" : undefined;
 
   let action;
+  let wethNow = Number(wethBal) / 1e18;
   const d = paused ? { action: "trading paused by guardian — holding" } : decide(s, px, navUsd, exposureUsd, cashUsd);
   if (d.action) { action = d.action; }
   else {
@@ -289,6 +313,11 @@ async function liveTick(ctx, dry) {
                      reason: d.reason, tx: hash, status: rcpt.status, navAfter: round(Number(ta2) / 1e6),
                      wethAfter: round(Number(weth2) / 1e18, 6) };
         s.trades.push(tr);
+        if (rcpt.status === "success") {
+          if (buy) s.wethBasisUsd = (s.wethBasisUsd || 0) + tr.usd;
+          else s.wethBasisUsd = tr.wethAfter > 1e-9 && wethNow > 0 ? (s.wethBasisUsd || 0) * (tr.wethAfter / wethNow) : 0;
+          wethNow = tr.wethAfter;
+        }
         action = `${tr.side} ~$${tr.usd} @ ${tr.px} → ${hash} (${rcpt.status})`;
       }
     } catch (e) {
@@ -299,7 +328,16 @@ async function liveTick(ctx, dry) {
   s.navHistory.push({ t, nav: round(navUsd), px: round(px) });
   if (s.navHistory.length > 5000) s.navHistory.shift();
   writeFileSync(LIVE_STATE, JSON.stringify(s, null, 2));
-  publish(s, { usdc: round(cashUsd), weth: round(Number(wethBal) / 1e18, 6), px: round(px), nav: round(navUsd),
+  const lPnl = 100 * (navUsd - s.startNav) / s.startNav;
+  const lPos = wethNow > 1e-9
+    ? [{ name: "WETH · momentum (on-chain)", size: `${round(wethNow, 4)} WETH`,
+         entry: `avg $${round((s.wethBasisUsd || 0) / wethNow)}`, value: round(wethNow * px),
+         pnl: round(wethNow * px - (s.wethBasisUsd || 0)) }]
+    : [];
+  const lStatus = `${lPnl >= 0 ? "up" : "down"} ${Math.abs(lPnl).toFixed(2)}% since live start · operator funds only, sealed · ` +
+    `momentum sleeve ${s.prices.length < SLOW ? `in warmup (${s.prices.length}/${SLOW})` : (wethNow > 1e-9 ? "LONG" : "FLAT")} · every trade has a tx hash`;
+  publish(s, { usdc: round(cashUsd), weth: round(wethNow, 6), positions: lPos, status: lStatus,
+               px: round(px), nav: round(navUsd),
                vault: VAULT, executor: account.address, ...(notice ? { notice } : {}) });
   console.log(`[milli ${nowIso()}] LIVE-SEALED px=${round(px)} nav=${round(navUsd)} | ${action}`);
 }

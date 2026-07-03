@@ -94,8 +94,10 @@
     "entryPx": 1728.45,
     "k": 72.05114942385458,
     "fees": 0,
-    "opened": 1783094935
+    "opened": 1783094935,
+    "basis": 3000
   },
   "costsPaid": 4.5,
-  "lpFeesEarned": 0
+  "lpFeesEarned": 0,
+  "wethBasisUsd": 0
 }

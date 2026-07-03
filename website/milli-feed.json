@@ -97,6 +97,17 @@
     "strategy": "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
     "px": 1728.45,
     "nav": 9995.5,
-    "updated": "2026-07-03T16:33:32.687Z"
+    "updated": "2026-07-03T16:39:42.062Z",
+    "positions": [
+      {
+        "name": "WETH/USDC LP",
+        "size": "50/50 pool share",
+        "entry": "$3000 @ ETH 1728.45",
+        "opened": 1783094935,
+        "value": 2995.5,
+        "pnl": -4.5,
+        "note": "incl. fees +$0 · IL priced exactly"
+      }
+    ]
   }
 }

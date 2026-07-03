@@ -471,6 +471,12 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
       <div class="state" id="mi-chart-state">SYS: LOADING FEED…</div>
     </div>
 
+    <h2>OPEN POSITIONS</h2>
+    <table id="mi-pos">
+      <tr><th>POSITION</th><th>SIZE</th><th>ENTRY</th><th>VALUE NOW</th><th>P&amp;L</th></tr>
+    </table>
+    <div class="note" id="mi-pos-note"></div>
+
     <h2>TRADE TAPE</h2>
     <table id="mi-tape">
       <tr><th>TIME (UTC)</th><th>SIDE</th><th>SIZE</th><th>PRICE</th><th>WHY</th></tr>
@@ -969,6 +975,17 @@ async function loadMilli(){
     if($("mi-costs")) $("mi-costs").textContent = st.costs!=null ? "−$"+Number(st.costs).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
     if($("mi-lpfees")) $("mi-lpfees").textContent = st.lpFees!=null ? "+$"+Number(st.lpFees).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
     if($("mi-status")) $("mi-status").textContent = st.status ? "is it making money? — "+st.status+"." : "";
+    if($("mi-pos")){
+      const pos = st.positions||[];
+      const hdr = '<tr><th>POSITION</th><th>SIZE</th><th>ENTRY</th><th>VALUE NOW</th><th>P&L</th></tr>';
+      const fmt = n => (n>=0?"+$":"−$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
+      $("mi-pos").innerHTML = hdr + pos.map(p =>
+        `<tr><td>${p.name}${j.mode==="live-sealed"?"":" · SIM"}</td><td>${p.size}</td><td>${p.entry}</td>`+
+        `<td>$${Number(p.value).toLocaleString(undefined,{maximumFractionDigits:2})}</td>`+
+        `<td>${fmt(p.pnl)}${p.note?` <span style="opacity:.6">(${p.note})</span>`:""}</td></tr>`).join("");
+      $("mi-pos-note").textContent = pos.length ? "positions update every tick; value marked at the Chainlink price, LP marked by exact constant-product math."
+                                                : "no open positions — 100% USDC.";
+    }
     $("mi-weth").textContent=Number(st.weth||0).toLocaleString(undefined,{maximumFractionDigits:4});
     $("mi-px").textContent="$"+Number(st.px||0).toLocaleString(undefined,{maximumFractionDigits:2});
     $("mi-upd").textContent=(st.updated||"—").replace("T"," ").slice(0,16);
