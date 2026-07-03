@@ -1,0 +1,16 @@
+.env
+*.env
+contracts/out/
+contracts/cache/
+contracts/lib/
+contracts/broadcast/
+node_modules/
+.DS_Store
+keys/
+*.keystore
+.executor-key
+docs-internal/
+*.zip
+ziqIy8U4
+zi2jGK1n
+monitor-state.json

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THOUSAND — one second. a thousand chances.</title>
+<meta property="og:title" content="THOUSAND">
+<meta property="og:description" content="Execution measured in thousandths. Base mainnet · fixed supply · burn-only.">
+<meta property="og:image" content="assets/thsnd-og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="assets/thsnd-mark-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#000000; --text:#FFFFFF; --dim:#8A8F98;
+    --line:#1F1F1F; --raise:#141414;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh;display:flex;flex-direction:column}
+  a{color:inherit;text-decoration:none}
+  header{display:flex;justify-content:space-between;align-items:center;height:60px;padding:0 24px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand svg{display:block}
+  .brand .name{font-family:var(--sans);font-weight:700;letter-spacing:.22em;font-size:15px}
+  nav{display:flex;gap:26px;align-items:center}
+  nav a{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.16em;padding:4px 0;border-bottom:2px solid transparent;cursor:pointer}
+  nav a.active{color:var(--text);border-bottom-color:var(--text)}
+  nav a:hover{color:var(--text)}
+  #wallet{font-size:12px;border:1px solid var(--line);padding:7px 16px;cursor:pointer;background:none;color:var(--text);font-family:var(--mono)}
+  #wallet:hover{border-color:var(--text)}
+  main{flex:1;max-width:1080px;width:100%;margin:0 auto;padding:48px 24px}
+  .page{display:none}.page.visible{display:block}
+  h1{font-family:var(--sans);font-weight:700;font-size:24px;letter-spacing:.02em;margin-bottom:6px}
+  .sub{color:var(--dim);font-size:12px;margin-bottom:40px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:40px}
+  .cell{background:var(--bg);padding:20px}
+  .cell .k{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:10px}
+  .cell .v{font-size:20px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  td{padding:12px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  .panel{border:1px solid var(--line);padding:28px;max-width:520px}
+  .panel + .panel{margin-top:24px}
+  label{display:block;color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin:18px 0 8px}
+  input[type=text]{width:100%;background:var(--raise);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:16px;padding:12px;outline:none}
+  input[type=text]:focus{border-color:var(--text)}
+  input[type=range]{width:100%;accent-color:#FFFFFF;margin:8px 0}
+  .row{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:6px}
+  .row b{color:var(--text);font-weight:700}
+  button.act{margin-top:24px;width:100%;background:var(--text);border:1px solid var(--text);color:var(--bg);font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.18em;padding:14px;cursor:pointer}
+  button.act:hover{background:var(--bg);color:var(--text)}
+  button.act:disabled{background:var(--raise);border-color:var(--line);color:var(--dim);cursor:not-allowed}
+  button.ghost{margin-top:12px;width:100%;background:none;border:1px solid var(--line);color:var(--text);font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.14em;padding:11px;cursor:pointer}
+  button.ghost:hover{border-color:var(--text)}
+  #msg{margin-top:16px;font-size:12px;color:var(--dim);min-height:16px;word-break:break-all}
+  .shrine{text-align:center;padding:70px 0}
+  .shrine .n{font-size:clamp(36px,7vw,76px);font-weight:700;font-variant-numeric:tabular-nums}
+  .shrine .l{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.3em;margin-top:14px}
+  footer{border-top:1px solid var(--line);padding:14px 24px;display:flex;justify-content:space-between;gap:16px;color:var(--dim);font-size:11px}
+  #sys{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .addr{color:var(--dim);font-size:11px}
+  .addr a:hover{color:var(--text)}
+  .note{color:var(--dim);font-size:11px;margin-top:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="72" height="24" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" aria-label="1000">
+      <rect x="2" y="2" width="9" height="36" fill="#FFF"/>
+      <rect x="24" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+      <rect x="60" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+      <rect x="96" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+    </svg>
+    <span class="name">THOUSAND</span>
+  </div>
+  <nav>
+    <a data-page="terminal" class="active">TERMINAL</a>
+    <a data-page="market">MARKET</a>
+    <a data-page="vault">VAULT</a>
+    <a data-page="burn">BURN</a>
+    <button id="wallet">CONNECT</button>
+  </nav>
+</header>
+
+<main>
+  <!-- TERMINAL -->
+  <section class="page visible" id="page-terminal">
+    <div style="text-align:center;padding:20px 0 8px">
+      <svg width="300" height="100" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" aria-label="1000" style="margin:0 auto 22px;display:block">
+        <rect x="2" y="2" width="9" height="36" fill="#FFF"/>
+        <rect x="24" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+        <rect x="60" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+        <rect x="96" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+      </svg>
+      <h1 style="font-size:30px">One second. A thousand chances.</h1>
+      <div class="sub" style="margin-bottom:28px">Execution measured in thousandths. $THSND · Base.</div>
+    </div>
+
+    <!-- live price hero -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:28px;border:1px solid var(--line);padding:24px;margin-bottom:24px">
+      <div style="text-align:center">
+        <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:8px">THSND / USD</div>
+        <div style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums" id="h-price">—</div>
+      </div>
+      <div style="text-align:center">
+        <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:8px">24H</div>
+        <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums" id="h-change">—</div>
+      </div>
+      <div style="text-align:center">
+        <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:8px">FDV</div>
+        <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums" id="h-fdv">—</div>
+      </div>
+      <button class="act" id="h-buy" style="margin-top:0;width:auto;padding:14px 40px">BUY $THSND</button>
+    </div>
+
+    <!-- embedded live chart + trade -->
+    <div id="h-chart" style="border:1px solid var(--line);height:520px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;letter-spacing:.14em;margin-bottom:40px">
+      SYS: LOADING MARKET…
+    </div>
+
+    <div class="grid">
+      <div class="cell"><div class="k">TOTAL SUPPLY</div><div class="v" id="s-supply">—</div></div>
+      <div class="cell"><div class="k">TOTAL BURNED</div><div class="v" id="s-burned">—</div></div>
+      <div class="cell"><div class="k">LOCKED IN VAULT</div><div class="v" id="s-locked">—</div></div>
+      <div class="cell"><div class="k">TOTAL vTHSND</div><div class="v" id="s-power">—</div></div>
+    </div>
+    <table>
+      <tr><th>CONTRACT</th><th>ADDRESS</th></tr>
+      <tr><td>TOKEN</td><td class="addr"><a href="https://basescan.org/address/0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb" target="_blank">0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb</a></td></tr>
+      <tr><td>VAULT</td><td class="addr"><a href="https://basescan.org/address/0x1141F662b0647C2776Bb6A59B0ECA3Db481e6847" target="_blank">0x1141F662b0647C2776Bb6A59B0ECA3Db481e6847</a></td></tr>
+      <tr><td>BURN</td><td class="addr"><a href="https://basescan.org/address/0x81929143c44a8141A1d2C40dB3774F1B262674D2" target="_blank">0x81929143c44a8141A1d2C40dB3774F1B262674D2</a></td></tr>
+      <tr><td>TIERS</td><td class="addr"><a href="https://basescan.org/address/0x4056179e23E87d88f76381df54e458E529fdf7BA" target="_blank">0x4056179e23E87d88f76381df54e458E529fdf7BA</a></td></tr>
+    </table>
+  </section>
+
+  <!-- MARKET -->
+  <section class="page" id="page-market">
+    <h1>Market</h1>
+    <div class="sub" id="mkt-sub">Live pricing activates automatically when the pool is seeded.</div>
+    <div class="grid">
+      <div class="cell"><div class="k">PRICE (USD)</div><div class="v" id="m-price">—</div></div>
+      <div class="cell"><div class="k">24H</div><div class="v" id="m-change">—</div></div>
+      <div class="cell"><div class="k">24H VOLUME</div><div class="v" id="m-vol">—</div></div>
+      <div class="cell"><div class="k">FDV</div><div class="v" id="m-fdv">—</div></div>
+    </div>
+    <div id="m-chart" style="border:1px solid var(--line);height:420px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;letter-spacing:.14em">
+      SYS: NO MARKET. POOL NOT SEEDED.
+    </div>
+    <div style="display:flex;gap:12px;margin-top:24px;max-width:520px">
+      <button class="act" id="btn-buy" style="margin-top:0" disabled>BUY</button>
+      <button class="ghost" id="btn-sell" style="margin-top:0" disabled>SELL</button>
+    </div>
+    <div class="note">Execution routes to Aerodrome with the verified contract pre-filled. Confirm the address matches 0xF7aa…CFdb — anything else is an imposter.</div>
+  </section>
+
+  <!-- VAULT -->
+  <section class="page" id="page-vault">
+    <h1>Vault</h1>
+    <div class="sub">Lock $THSND → vTHSND governance weight + pro-rata protocol fee share. Principal is non-custodial; withdrawable at expiry.</div>
+
+    <div class="grid" style="max-width:520px">
+      <div class="cell"><div class="k">EXECUTION TIER</div><div class="v" id="u-tier">—</div></div>
+      <div class="cell"><div class="k">FEE DISCOUNT</div><div class="v" id="u-disc">—</div></div>
+      <div class="cell"><div class="k">WALLET BALANCE</div><div class="v" id="u-bal">—</div></div>
+      <div class="cell"><div class="k">CLAIMABLE WETH</div><div class="v" id="u-earned">—</div></div>
+    </div>
+
+    <div class="panel">
+      <label>AMOUNT ($THSND)</label>
+      <input type="text" id="amt" placeholder="0.0" inputmode="decimal">
+      <label>DURATION — <span id="dur-label">52 WEEKS</span></label>
+      <input type="range" id="dur" min="1" max="208" value="52">
+      <div class="row"><span>vTHSND on lock</span><b id="calc-power">0</b></div>
+      <div class="row"><span>unlocks</span><b id="calc-end">—</b></div>
+      <button class="act" id="btn-lock" disabled>CONNECT WALLET</button>
+      <button class="ghost" id="btn-claim">CLAIM FEES</button>
+      <button class="ghost" id="btn-withdraw">WITHDRAW EXPIRED LOCK</button>
+      <div id="msg"></div>
+    </div>
+
+    <div class="panel">
+      <div class="row"><span>your locked balance</span><b id="u-locked">—</b></div>
+      <div class="row"><span>your vTHSND</span><b id="u-power">—</b></div>
+      <div class="row"><span>your unlock date</span><b id="u-end">—</b></div>
+    </div>
+  </section>
+
+  <!-- BURN -->
+  <section class="page" id="page-burn">
+    <div class="shrine">
+      <div class="n" id="b-total">—</div>
+      <div class="l">PERMANENTLY DESTROYED</div>
+    </div>
+    <div class="sub" style="text-align:center">1.5% of every liquidation is market-bought and burned. Supply only goes down.</div>
+  </section>
+</main>
+
+<footer>
+  <div id="sys">SYS: initializing…</div>
+  <div>PRE-LAUNCH · CONTRACTS UNAUDITED · NOT AN OFFER OR SOLICITATION</div>
+</footer>
+
+<script>
+const ADDR = {
+  muy:  "0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb",
+  lock: "0x1141F662b0647C2776Bb6A59B0ECA3Db481e6847",
+  burn: "0x81929143c44a8141A1d2C40dB3774F1B262674D2",
+  tier: "0x4056179e23E87d88f76381df54e458E529fdf7BA",
+};
+const ABI = {
+  muy: ["function balanceOf(address) view returns (uint256)","function totalSupply() view returns (uint256)","function totalBurned() view returns (uint256)","function approve(address,uint256) returns (bool)","function allowance(address,address) view returns (uint256)"],
+  lock:["function locks(address) view returns (uint128 amount,uint128 power,uint64 end)","function totalLocked() view returns (uint256)","function totalPower() view returns (uint256)","function lock(uint256,uint256)","function withdraw()","function claim()","function earned(address) view returns (uint256)"],
+  burnE:["function totalMuyBurned() view returns (uint256)"],
+  tier:["function tierOf(address) view returns (uint256)","function discountOf(address) view returns (uint256)"],
+};
+const TIERS = ["T1","T10","T100","T1000"];
+const CHAIN = 8453n;
+const read = new ethers.JsonRpcProvider("https://mainnet.base.org");
+const R = {
+  muy:  new ethers.Contract(ADDR.muy, ABI.muy, read),
+  lock: new ethers.Contract(ADDR.lock, ABI.lock, read),
+  burn: new ethers.Contract(ADDR.burn, ABI.burnE, read),
+  tier: new ethers.Contract(ADDR.tier, ABI.tier, read),
+};
+let signer = null, me = null;
+
+const $ = id => document.getElementById(id);
+const fmt = (v, d=0) => Number(ethers.formatEther(v)).toLocaleString(undefined,{maximumFractionDigits:d});
+
+document.querySelectorAll("nav a").forEach(a => a.onclick = () => {
+  document.querySelectorAll("nav a").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("visible"));
+  a.classList.add("active");
+  $("page-"+a.dataset.page).classList.add("visible");
+});
+
+const SYS = [
+  "SYS: 1000ms per second. all of them in use.",
+  "SYS: price is a social construct. burns are not.",
+  "SYS: pre-launch mode. do not deposit funds you cannot lose.",
+  "SYS: t1000 tier detected? fees decline to exist.",
+];
+let si = 0;
+setInterval(()=>{ $("sys").textContent = SYS[si++ % SYS.length]; }, 8000);
+$("sys").textContent = SYS[2];
+
+async function refreshGlobal(){
+  try{
+    const [supply, burned, locked, power] = await Promise.all([
+      R.muy.totalSupply(), R.muy.totalBurned(), R.lock.totalLocked(), R.lock.totalPower()
+    ]);
+    $("s-supply").textContent = fmt(supply);
+    $("s-burned").textContent = fmt(burned);
+    $("s-locked").textContent = fmt(locked);
+    $("s-power").textContent  = fmt(power);
+    $("b-total").textContent  = fmt(burned);
+  }catch(e){ $("sys").textContent = "SYS: rpc unreachable. retrying."; }
+}
+refreshGlobal(); setInterval(refreshGlobal, 15000);
+
+// market (GeckoTerminal auto-indexes Aerodrome pools)
+const GT = "https://api.geckoterminal.com/api/v2/networks/base";
+const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // native USDC on Base
+const swapUrl = (from, to) => `https://aerodrome.finance/swap?from=${from}&to=${to}`;
+async function refreshMarket(){
+  try{
+    const r = await fetch(`${GT}/tokens/${ADDR.muy}`);
+    if(!r.ok) throw 0;
+    const a = (await r.json()).data.attributes;
+    const price = parseFloat(a.price_usd);
+    if(!price) throw 0;
+    $("m-price").textContent = "$" + price.toLocaleString(undefined,{maximumSignificantDigits:6});
+    $("m-fdv").textContent = a.fdv_usd ? "$" + Number(a.fdv_usd).toLocaleString(undefined,{maximumFractionDigits:0}) : "—";
+    $("m-vol").textContent = a.volume_usd?.h24 ? "$" + Number(a.volume_usd.h24).toLocaleString(undefined,{maximumFractionDigits:0}) : "—";
+    const rp = await fetch(`${GT}/tokens/${ADDR.muy}/pools`);
+    const pool = (await rp.json()).data?.[0];
+    if(pool){
+      const ch = pool.attributes.price_change_percentage?.h24;
+      if(ch !== undefined){
+        const n = Number(ch);
+        $("m-change").textContent = (n>=0?"▲ ":"▼ ") + Math.abs(n).toFixed(2) + "%";
+      }
+      const poolAddr = pool.attributes.address;
+      if(!$("m-chart").dataset.live){
+        $("m-chart").dataset.live = "1";
+        $("m-chart").innerHTML = `<iframe src="https://www.geckoterminal.com/base/pools/${poolAddr}?embed=1&info=0&swaps=0&theme=dark" style="width:100%;height:100%;border:0" allow="clipboard-write"></iframe>`;
+      }
+      // homepage: chart WITH trade/swap panel enabled
+      if($("h-chart") && !$("h-chart").dataset.live){
+        $("h-chart").dataset.live = "1";
+        $("h-chart").innerHTML = `<iframe src="https://www.geckoterminal.com/base/pools/${poolAddr}?embed=1&info=1&swaps=1&theme=dark" style="width:100%;height:100%;border:0" allow="clipboard-write"></iframe>`;
+      }
+      // homepage hero mirrors market stats
+      if($("h-change")){
+        const n=Number(pool.attributes.price_change_percentage?.h24 ?? 0);
+        $("h-change").textContent = (n>=0?"▲ ":"▼ ") + Math.abs(n).toFixed(2) + "%";
+      }
+    }
+    if($("h-price")) $("h-price").textContent = "$" + price.toLocaleString(undefined,{maximumSignificantDigits:6});
+    if($("h-fdv")) $("h-fdv").textContent = a.fdv_usd ? "$" + Number(a.fdv_usd).toLocaleString(undefined,{maximumFractionDigits:0}) : "—";
+    $("btn-buy").disabled = false; $("btn-sell").disabled = false;
+    $("mkt-sub").textContent = "Routed via Aerodrome. Data: GeckoTerminal.";
+  }catch(e){ /* pool not live yet */ }
+}
+refreshMarket(); setInterval(refreshMarket, 30000);
+$("btn-buy").onclick  = () => window.open(swapUrl(USDC, ADDR.muy), "_blank");
+$("btn-sell").onclick = () => window.open(swapUrl(ADDR.muy, USDC), "_blank");
+if($("h-buy")) $("h-buy").onclick = () => window.open(swapUrl(USDC, ADDR.muy), "_blank");
+
+// wallet
+$("wallet").onclick = async () => {
+  if(!window.ethereum){ msg("no wallet detected. install Coinbase Wallet / MetaMask.", true); return; }
+  const bp = new ethers.BrowserProvider(window.ethereum);
+  await bp.send("eth_requestAccounts", []);
+  const net = await bp.getNetwork();
+  if(net.chainId !== CHAIN){
+    try{ await bp.send("wallet_switchEthereumChain",[{chainId:"0x2105"}]); }
+    catch{ msg("switch your wallet to Base network", true); return; }
+  }
+  signer = await bp.getSigner();
+  me = await signer.getAddress();
+  $("wallet").textContent = me.slice(0,6)+"…"+me.slice(-4);
+  $("btn-lock").disabled = false;
+  $("btn-lock").textContent = "LOCK";
+  refreshUser();
+};
+
+async function refreshUser(){
+  if(!me) return;
+  try{
+    const [bal, l, earned, tier, disc] = await Promise.all([
+      R.muy.balanceOf(me), R.lock.locks(me), R.lock.earned(me), R.tier.tierOf(me), R.tier.discountOf(me)
+    ]);
+    $("u-bal").textContent = fmt(bal);
+    $("u-earned").textContent = fmt(earned, 6);
+    $("u-tier").textContent = TIERS[Number(tier)] ?? tier.toString();
+    $("u-disc").textContent = "-" + (Number(disc)/100) + "%";
+    $("u-locked").textContent = fmt(l.amount);
+    $("u-power").textContent = fmt(l.power);
+    $("u-end").textContent = l.end > 0n ? new Date(Number(l.end)*1000).toISOString().slice(0,10) : "—";
+  }catch(e){}
+}
+setInterval(refreshUser, 15000);
+
+const MAX_WEEKS = 208;
+function recalc(){
+  const w = Number($("dur").value);
+  $("dur-label").textContent = w + (w===1?" WEEK":" WEEKS");
+  const amt = parseFloat($("amt").value) || 0;
+  $("calc-power").textContent = (amt * w / MAX_WEEKS).toLocaleString(undefined,{maximumFractionDigits:2});
+  $("calc-end").textContent = new Date(Date.now()+w*7*864e5).toISOString().slice(0,10);
+}
+$("dur").oninput = recalc; $("amt").oninput = recalc; recalc();
+
+function msg(t, err){ const m=$("msg"); m.textContent=t; m.style.color = err ? "#FFFFFF" : "var(--dim)"; }
+
+$("btn-lock").onclick = async () => {
+  if(!signer) return;
+  try{
+    const amt = ethers.parseEther($("amt").value || "0");
+    if(amt <= 0n){ msg("enter an amount", true); return; }
+    const dur = BigInt($("dur").value) * 7n * 86400n;
+    const muyW = new ethers.Contract(ADDR.muy, ABI.muy, signer);
+    const lockW = new ethers.Contract(ADDR.lock, ABI.lock, signer);
+    const allowance = await R.muy.allowance(me, ADDR.lock);
+    if(allowance < amt){
+      msg("approving…");
+      await (await muyW.approve(ADDR.lock, amt)).wait();
+    }
+    msg("locking…");
+    const tx = await lockW.lock(amt, dur);
+    await tx.wait();
+    msg("locked. tx " + tx.hash.slice(0,10) + "…");
+    refreshGlobal(); refreshUser();
+  }catch(e){ msg(e.shortMessage || e.message, true); }
+};
+$("btn-claim").onclick = async () => {
+  if(!signer){ msg("connect wallet first", true); return; }
+  try{
+    const lockW = new ethers.Contract(ADDR.lock, ABI.lock, signer);
+    msg("claiming…");
+    const tx = await lockW.claim(); await tx.wait();
+    msg("fees claimed."); refreshUser();
+  }catch(e){ msg(e.shortMessage || e.message, true); }
+};
+$("btn-withdraw").onclick = async () => {
+  if(!signer){ msg("connect wallet first", true); return; }
+  try{
+    const lockW = new ethers.Contract(ADDR.lock, ABI.lock, signer);
+    msg("withdrawing…");
+    const tx = await lockW.withdraw(); await tx.wait();
+    msg("principal withdrawn."); refreshGlobal(); refreshUser();
+  }catch(e){ msg(e.shortMessage || e.message, true); }
+};
+</script>
+</body>
+</html>

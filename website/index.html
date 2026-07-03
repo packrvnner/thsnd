@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THOUSAND — $THSND · Base</title>
+<meta name="description" content="$THSND on Base: 1 billion tokens minted at launch, and no way to ever mint more. Burns shrink the supply; the vault pays lockers real WETH fees, not inflation.">
+<link rel="canonical" href="https://thsnd.xyz/">
+<meta property="og:url" content="https://thsnd.xyz/">
+<meta property="og:title" content="THOUSAND — $THSND">
+<meta property="og:description" content="1 billion minted at launch. No way to mint more, ever. Burns make it scarcer; the vault pays lockers real WETH fees. Live on Base.">
+<meta property="og:image" content="https://thsnd.xyz/assets/thsnd-og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://thsnd.xyz/assets/thsnd-og.png">
+<link rel="icon" type="image/png" href="assets/thsnd-mark-32.png">
+<link rel="apple-touch-icon" href="assets/thsnd-mark-256.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.geckoterminal.com" crossorigin>
+<link rel="preconnect" href="https://mainnet.base.org" crossorigin>
+<link rel="preconnect" href="https://base.blockscout.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/lightweight-charts/4.2.0/lightweight-charts.standalone.production.min.js"></script>
+<style>
+  :root{
+    --bg:#000000; --text:#FFFFFF; --dim:#8A8F98;
+    --line:#1F1F1F; --raise:#141414;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh;display:flex;flex-direction:column}
+  a{color:inherit;text-decoration:none}
+  header{display:flex;justify-content:space-between;align-items:center;height:60px;padding:0 24px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:10}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand svg{display:block}
+  .brand .name{font-family:var(--sans);font-weight:700;letter-spacing:.22em;font-size:15px}
+  nav{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  nav a{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.16em;padding:4px 0;border-bottom:2px solid transparent;cursor:pointer}
+  nav a.active{color:var(--text);border-bottom-color:var(--text)}
+  nav a:hover{color:var(--text)}
+  #wallet{font-size:12px;border:1px solid var(--line);padding:7px 16px;cursor:pointer;background:none;color:var(--text);font-family:var(--mono)}
+  #wallet:hover{border-color:var(--text)}
+  main{flex:1;max-width:1080px;width:100%;margin:0 auto;padding:48px 24px}
+  .page{display:none}.page.visible{display:block}
+  h1{font-family:var(--sans);font-weight:700;font-size:24px;letter-spacing:.02em;margin-bottom:6px}
+  h2{font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.2em;margin:44px 0 16px;color:var(--text)}
+  .sub{color:var(--dim);font-size:12px;margin-bottom:40px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:40px}
+  .grid.tight{margin-bottom:24px}
+  .cell{background:var(--bg);padding:20px}
+  .cell .k{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:10px}
+  .cell .v{font-size:20px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .cell .v small{font-size:11px;color:var(--dim);font-weight:500}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+  td{padding:12px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  .panel{border:1px solid var(--line);padding:28px}
+  label{display:block;color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin:18px 0 8px}
+  input[type=text]{width:100%;background:var(--raise);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:16px;padding:12px;outline:none}
+  input[type=text]:focus{border-color:var(--text)}
+  input[type=range]{width:100%;accent-color:#FFFFFF;margin:8px 0}
+  .row{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:6px;gap:12px}
+  .row b{color:var(--text);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  button.act{margin-top:24px;width:100%;background:var(--text);border:1px solid var(--text);color:var(--bg);font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.18em;padding:14px;cursor:pointer}
+  button.act:hover{background:var(--bg);color:var(--text)}
+  button.act:disabled{background:var(--raise);border-color:var(--line);color:var(--dim);cursor:not-allowed}
+  button.ghost{margin-top:12px;width:100%;background:none;border:1px solid var(--line);color:var(--text);font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.14em;padding:11px;cursor:pointer}
+  button.ghost:hover{border-color:var(--text)}
+  button.ghost:disabled{color:var(--dim);cursor:not-allowed;border-color:var(--line)}
+  #msg{margin-top:16px;font-size:12px;color:var(--dim);min-height:16px;word-break:break-all}
+  .shrine{text-align:center;padding:70px 0 40px}
+  .shrine .n{font-size:clamp(36px,7vw,76px);font-weight:700;font-variant-numeric:tabular-nums}
+  .shrine .l{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:11px;letter-spacing:.3em;margin-top:14px}
+  footer{border-top:1px solid var(--line);padding:14px 24px;display:flex;justify-content:space-between;gap:16px;color:var(--dim);font-size:11px;flex-wrap:wrap}
+  #sys{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .addr{color:var(--dim);font-size:11px}
+  .addr a:hover{color:var(--text)}
+  .note{color:var(--dim);font-size:11px;margin-top:14px;line-height:1.6}
+  /* charts */
+  .chartbox{border:1px solid var(--line);position:relative}
+  .chartbox .cv{width:100%}
+  .chartbox .tag{position:absolute;top:10px;left:12px;z-index:5;color:var(--dim);font-family:var(--sans);font-weight:600;font-size:9px;letter-spacing:.18em}
+  .chartbox .state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;letter-spacing:.14em;pointer-events:none}
+  .skeleton{background:linear-gradient(90deg,var(--bg) 25%,var(--raise) 50%,var(--bg) 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .ranges{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);width:max-content;margin:0 0 12px auto}
+  .ranges button{background:var(--bg);border:0;color:var(--dim);font-family:var(--mono);font-size:11px;padding:6px 14px;cursor:pointer}
+  .ranges button.on{background:var(--raise);color:var(--text)}
+  /* vault layout */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}}
+  .stream{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+  .stream small{font-size:12px;color:var(--dim);font-weight:500}
+  .steps{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:18px}
+  .step{flex:1;background:var(--bg);padding:12px 10px;text-align:center;font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--dim);cursor:pointer}
+  .step:hover{color:var(--text)}
+  .step.done{background:var(--raise);color:var(--text)}
+  .step.done::before{content:"▮ "}
+  .step::before{content:"□ "}
+  /* mechanics */
+  .mech{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:8px}
+  .mech .m{background:var(--bg);padding:22px}
+  .mech .m .t{font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:.18em;margin-bottom:10px}
+  .mech .m .d{color:var(--dim);font-size:12px;line-height:1.7}
+  .mech .m .d b{color:var(--text)}
+  .flow{border:1px solid var(--line);padding:20px 24px;color:var(--dim);font-size:12px;line-height:2;overflow-x:auto;white-space:pre;margin-bottom:40px}
+  .flow b{color:var(--text)}
+  /* guide */
+  details{border:1px solid var(--line);border-bottom:0}
+  details:last-of-type{border-bottom:1px solid var(--line)}
+  summary{cursor:pointer;padding:16px 20px;font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.14em;list-style:none;display:flex;justify-content:space-between;gap:12px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--dim)}
+  details[open] summary::after{content:"–"}
+  details .body{padding:0 20px 20px;color:var(--dim);font-size:13px;line-height:1.85;max-width:760px}
+  details .body b{color:var(--text)}
+  details .body code{background:var(--raise);padding:2px 6px;font-size:12px}
+  /* roadmap */
+  .phase{border:1px solid var(--line);margin-bottom:24px}
+  .phase .ph{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line)}
+  .phase .ph .pt{font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.18em}
+  .phase .ph .ps{color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em}
+  .phase ul{list-style:none;padding:10px 22px 16px}
+  .phase li{padding:7px 0;font-size:13px;color:var(--dim);line-height:1.6}
+  .phase li b{color:var(--text);font-weight:500}
+  .phase li::before{content:"□  ";color:var(--dim)}
+  .phase li.done::before{content:"▮  ";color:var(--text)}
+  .phase li.done b{color:var(--text)}
+  .pill{display:inline-block;border:1px solid var(--line);padding:2px 8px;font-size:10px;color:var(--dim);letter-spacing:.1em;margin-left:8px;vertical-align:middle}
+  .links{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px}
+  .links a{border:1px solid var(--line);padding:8px 14px;font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.16em;color:var(--dim)}
+  .links a:hover{color:var(--text);border-color:var(--text)}
+  /* contract-address copy chip */
+  .ca{display:inline-flex;align-items:center;gap:12px;border:1px solid var(--line);padding:9px 14px;font-size:12px;color:var(--dim);cursor:pointer;font-variant-numeric:tabular-nums;max-width:100%}
+  .ca:hover{border-color:var(--text);color:var(--text)}
+  .ca .full{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ca b{color:var(--text);font-family:var(--sans);font-size:10px;letter-spacing:.16em;flex:none}
+  /* wallet modal */
+  #wmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.84);z-index:50;align-items:center;justify-content:center}
+  #wmodal.open{display:flex}
+  #wmodal .box{background:var(--bg);border:1px solid var(--line);padding:24px;max-width:380px;width:92%}
+  #wmodal .wt{display:flex;justify-content:space-between;align-items:center;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.2em;margin-bottom:14px}
+  #wmodal .wt span:last-child{cursor:pointer;color:var(--dim);padding:2px 8px}
+  #wmodal .wopt{display:flex;align-items:center;gap:12px;width:100%;background:none;border:1px solid var(--line);color:var(--text);font-family:var(--sans);font-weight:600;font-size:12px;letter-spacing:.12em;padding:12px 14px;cursor:pointer;margin-top:10px;text-align:left}
+  #wmodal .wopt:hover{border-color:var(--text)}
+  #wmodal .wopt img{width:20px;height:20px}
+  #wmodal .wopt .sq{width:14px;height:14px;border:3px solid #FFF;flex:none}
+  #wm-msg{margin-top:14px;font-size:11px;color:var(--dim);line-height:1.6;word-break:break-word}
+  /* mobile */
+  @media(max-width:760px){
+    header{height:auto;padding:10px 14px 0;gap:8px;flex-wrap:wrap}
+    .brand svg{width:54px;height:18px}
+    .brand .name{font-size:13px}
+    nav{width:100%;gap:18px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:8px 0 10px}
+    nav::-webkit-scrollbar{display:none}
+    main{padding:22px 14px}
+    h1{font-size:21px}
+    .sub{margin-bottom:26px}
+    .cell{padding:12px}
+    .cell .v{font-size:15px}
+    .panel{padding:16px}
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .flow{font-size:10px;padding:14px 16px}
+    #h-chart{height:300px!important}
+    #m-chart{height:300px!important}
+    #v-chart{height:240px!important}
+    .hero-logo{width:190px!important;height:64px!important}
+    .hero-h1{font-size:clamp(20px,6.4vw,30px)!important}
+    .hero-px{font-size:clamp(24px,8vw,32px)!important}
+    .shrine{padding:44px 0 18px}
+    .ranges{max-width:100%;overflow-x:auto}
+    footer{flex-direction:column;align-items:flex-start;gap:6px}
+    #sys{white-space:normal}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="72" height="24" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" aria-label="1000">
+      <rect x="2" y="2" width="9" height="36" fill="#FFF"/>
+      <rect x="24" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+      <rect x="60" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+      <rect x="96" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+    </svg>
+    <span class="name">THOUSAND</span>
+  </div>
+  <nav>
+    <a data-page="terminal" class="active">TERMINAL</a>
+    <a data-page="market">MARKET</a>
+    <a data-page="vault">VAULT</a>
+    <a data-page="burn">BURN</a>
+    <a data-page="milli">MILLI</a>
+    <a data-page="docs">DOCS</a>
+    <a data-page="roadmap">ROADMAP</a>
+    <button id="wallet">CONNECT</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============================ TERMINAL ============================ -->
+  <section class="page visible" id="page-terminal">
+    <div style="text-align:center;padding:20px 0 8px">
+      <svg class="hero-logo" width="300" height="100" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" aria-label="1000" style="margin:0 auto 22px;display:block">
+        <rect x="2" y="2" width="9" height="36" fill="#FFF"/>
+        <rect x="24" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+        <rect x="60" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+        <rect x="96" y="8" width="24" height="24" fill="none" stroke="#FFF" stroke-width="6"/>
+      </svg>
+      <h1 class="hero-h1" style="font-size:30px">Thousand</h1>
+      <div class="sub" style="margin-bottom:28px">$THSND on Base — 1 billion minted at launch. No way to mint more, ever. Every burn makes it scarcer.</div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:28px;border:1px solid var(--line);padding:24px;margin-bottom:24px">
+      <div style="text-align:center">
+        <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:8px">THSND / USD</div>
+        <div class="hero-px" style="font-size:32px;font-weight:700;font-variant-numeric:tabular-nums" id="h-price">—</div>
+      </div>
+      <div style="text-align:center">
+        <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:8px">24H</div>
+        <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums" id="h-change">—</div>
+      </div>
+      <div style="text-align:center">
+        <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em;margin-bottom:8px">FDV</div>
+        <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums" id="h-fdv">—</div>
+      </div>
+      <button class="act" id="h-buy" style="margin-top:0;width:auto;padding:14px 40px">BUY $THSND</button>
+    </div>
+
+    <div style="text-align:center;margin:0 0 24px">
+      <span class="ca" title="Copy the verified contract address"><span class="full">CA · 0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb</span><b>COPY</b></span>
+      <div class="note" style="margin-top:8px">the only real $THSND. paste it into fomo, dexscreener, or any wallet — anything else is an imposter.</div>
+    </div>
+
+    <div class="chartbox" style="margin-bottom:40px">
+      <span class="tag" id="h-chart-tag">PRICE · LIVE</span>
+      <div class="cv skeleton" id="h-chart" style="height:420px"></div>
+      <div class="state" id="h-chart-state">SYS: CONNECTING FEED…</div>
+    </div>
+
+    <div class="grid">
+      <div class="cell"><div class="k">TOTAL SUPPLY</div><div class="v" id="s-supply">—</div></div>
+      <div class="cell"><div class="k">TOTAL BURNED</div><div class="v" id="s-burned">—</div></div>
+      <div class="cell"><div class="k">LOCKED IN VAULT</div><div class="v" id="s-locked">—</div></div>
+      <div class="cell"><div class="k">TOTAL vTHSND</div><div class="v" id="s-power">—</div></div>
+    </div>
+
+    <h2>MECHANICS</h2>
+    <div class="mech">
+      <div class="m"><div class="t">▮ FIXED SUPPLY</div><div class="d"><b>1,000,000,000</b> minted once at genesis. No mint function exists in the bytecode. Supply can only go down.</div></div>
+      <div class="m"><div class="t">□ BURN-ONLY</div><div class="d"><b>1.5%</b> of every liquidation is market-bought and burned by the BurnEngine. Every burn is an on-chain <code style="background:var(--raise);padding:1px 5px">Burned</code> event.</div></div>
+      <div class="m"><div class="t">□ LOCK → vTHSND</div><div class="d">Lock 1 week – 4 years. <b>vTHSND = amount × weeks / 208</b>, fixed at lock time. Non-transferable, non-custodial.</div></div>
+      <div class="m"><div class="t">□ FEE STREAM</div><div class="d">Protocol fees arrive as <b>WETH</b> and stream pro-rata to vTHSND weight. Claim any time; principal untouched.</div></div>
+    </div>
+    <div class="flow">TRADES ───────▶ FEES (WETH) ───────▶ <b>[ VAULT ]</b> ───────▶ LOCKERS · pro-rata vTHSND
+LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ SUPPLY ▼ · forever</div>
+
+    <h2>CONTRACTS · BASE MAINNET</h2>
+    <table>
+      <tr><th>CONTRACT</th><th>ADDRESS</th></tr>
+      <tr><td>TOKEN</td><td class="addr"><a href="https://basescan.org/address/0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb" target="_blank" rel="noopener">0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb</a></td></tr>
+      <tr><td>VAULT</td><td class="addr"><a href="https://basescan.org/address/0x1141F662b0647C2776Bb6A59B0ECA3Db481e6847" target="_blank" rel="noopener">0x1141F662b0647C2776Bb6A59B0ECA3Db481e6847</a></td></tr>
+      <tr><td>BURN</td><td class="addr"><a href="https://basescan.org/address/0x81929143c44a8141A1d2C40dB3774F1B262674D2" target="_blank" rel="noopener">0x81929143c44a8141A1d2C40dB3774F1B262674D2</a></td></tr>
+      <tr><td>TIERS</td><td class="addr"><a href="https://basescan.org/address/0x4056179e23E87d88f76381df54e458E529fdf7BA" target="_blank" rel="noopener">0x4056179e23E87d88f76381df54e458E529fdf7BA</a></td></tr>
+      <tr><td>POOL (AERODROME)</td><td class="addr"><a href="https://basescan.org/address/0xcacf70ae3ba1fa1dc16bea05e57ea90fef0657c0" target="_blank" rel="noopener">0xcacf70ae3ba1fa1dc16bea05e57ea90fef0657c0</a></td></tr>
+      <tr><td>MILLI VAULT (mTHSND)</td><td class="addr"><a href="https://basescan.org/address/0xF925b09790035E0ef60Cd115eba7E8bDD10981d0" target="_blank" rel="noopener">0xF925b09790035E0ef60Cd115eba7E8bDD10981d0</a></td></tr>
+      <tr><td>MILLI FEE SINK</td><td class="addr"><a href="https://basescan.org/address/0x650d2837BF2d5ff7DbD216cf9aFD0C47c726fdEF" target="_blank" rel="noopener">0x650d2837BF2d5ff7DbD216cf9aFD0C47c726fdEF</a></td></tr>
+      <tr><td>ROUTE ADAPTER</td><td class="addr"><a href="https://basescan.org/address/0x24A8D50b4a723614E3b0F4fAa6AeFa5B0d2C504B" target="_blank" rel="noopener">0x24A8D50b4a723614E3b0F4fAa6AeFa5B0d2C504B</a></td></tr>
+    </table>
+    <div class="links" style="margin-top:24px">
+      <a href="https://aerodrome.finance/swap?from=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&to=0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb" target="_blank" rel="noopener">AERODROME ↗</a>
+      <a href="https://www.geckoterminal.com/base/pools/0xcacf70ae3ba1fa1dc16bea05e57ea90fef0657c0" target="_blank" rel="noopener">GECKOTERMINAL ↗</a>
+      <a href="https://dexscreener.com/base/0xcacf70ae3ba1fa1dc16bea05e57ea90fef0657c0" target="_blank" rel="noopener">DEXSCREENER ↗</a>
+      <a href="https://fomo.family/tokens/base/0xf7aa829ed31fe30834e56348e9cd3fbb4687cfdb" target="_blank" rel="noopener">FOMO ↗</a>
+      <a href="https://basescan.org/token/0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb" target="_blank" rel="noopener">BASESCAN ↗</a>
+    </div>
+  </section>
+
+  <!-- ============================ MARKET ============================ -->
+  <section class="page" id="page-market">
+    <h1>Market</h1>
+    <div class="sub" id="mkt-sub">On-chain feed live. Candles load when the indexer picks up the pool.</div>
+    <div class="grid tight">
+      <div class="cell"><div class="k">PRICE (USD)</div><div class="v" id="m-price">—</div></div>
+      <div class="cell"><div class="k">24H</div><div class="v" id="m-change">—</div></div>
+      <div class="cell"><div class="k">24H VOLUME</div><div class="v" id="m-vol">—</div></div>
+      <div class="cell"><div class="k">FDV</div><div class="v" id="m-fdv">—</div></div>
+    </div>
+    <div class="grid tight">
+      <div class="cell"><div class="k">POOL THSND</div><div class="v" id="m-r0">—</div></div>
+      <div class="cell"><div class="k">POOL USDC</div><div class="v" id="m-r1">—</div></div>
+      <div class="cell"><div class="k">POOL LIQUIDITY</div><div class="v" id="m-liq">—</div></div>
+      <div class="cell"><div class="k">ETH / USD</div><div class="v" id="m-eth">—</div></div>
+    </div>
+    <div class="ranges" id="m-ranges">
+      <button data-r="15m">15M</button><button data-r="1h" class="on">1H</button><button data-r="4h">4H</button><button data-r="1d">1D</button>
+    </div>
+    <div class="chartbox">
+      <span class="tag" id="m-chart-tag">PRICE · LIVE</span>
+      <div class="cv skeleton" id="m-chart" style="height:420px"></div>
+      <div class="state" id="m-chart-state">SYS: CONNECTING FEED…</div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:24px;max-width:520px">
+      <button class="act" id="btn-buy" style="margin-top:0">BUY</button>
+      <button class="ghost" id="btn-sell" style="margin-top:0">SELL</button>
+    </div>
+    <div style="margin-top:16px">
+      <span class="ca" title="Copy the verified contract address"><span class="full">CA · 0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb</span><b>COPY</b></span>
+    </div>
+    <div class="note">Execution routes to Aerodrome with the verified contract pre-filled. On your phone? $THSND is on <a href="https://fomo.family/tokens/base/0xf7aa829ed31fe30834e56348e9cd3fbb4687cfdb" target="_blank" rel="noopener" style="text-decoration:underline">fomo ↗</a> — verify the address matches the one above; anything else is an imposter.</div>
+  </section>
+
+  <!-- ============================ VAULT ============================ -->
+  <section class="page" id="page-vault">
+    <h1>Vault</h1>
+    <div class="sub">Lock $THSND → vTHSND governance weight + pro-rata WETH fee share. Principal is non-custodial; withdrawable at expiry.</div>
+
+    <div class="grid tight">
+      <div class="cell"><div class="k">TVL</div><div class="v" id="v-tvl">—</div></div>
+      <div class="cell"><div class="k">TVL (USD)</div><div class="v" id="v-tvlusd">—</div></div>
+      <div class="cell"><div class="k">TOTAL vTHSND</div><div class="v" id="v-power">—</div></div>
+      <div class="cell"><div class="k">% OF SUPPLY LOCKED</div><div class="v" id="v-pct">—</div></div>
+    </div>
+    <div class="grid tight">
+      <div class="cell"><div class="k">AVG LOCK</div><div class="v" id="v-avg">—</div></div>
+      <div class="cell"><div class="k">FEES DISTRIBUTED</div><div class="v" id="v-fees">—</div></div>
+      <div class="cell"><div class="k">APR · 30D MEASURED</div><div class="v" id="v-apr">—</div></div>
+      <div class="cell"><div class="k">LAST FEE EPOCH</div><div class="v" id="v-epoch">—</div></div>
+    </div>
+
+    <div class="ranges" id="v-ranges">
+      <button data-s="tvl" class="on">TVL</button><button data-s="fees">FEES</button><button data-s="apr">APR</button>
+    </div>
+    <div class="chartbox" style="margin-bottom:40px">
+      <span class="tag" id="v-chart-tag">VAULT TVL · THSND</span>
+      <div class="cv skeleton" id="v-chart" style="height:300px"></div>
+      <div class="state" id="v-chart-state">SYS: READING CHAIN HISTORY…</div>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="panel">
+          <div class="row" style="margin-top:0"><span>EXECUTION TIER</span><b id="u-tier">—</b></div>
+          <div class="row"><span>FEE DISCOUNT</span><b id="u-disc">—</b></div>
+          <label style="display:flex;justify-content:space-between;align-items:baseline">AMOUNT ($THSND) <a id="amt-max" style="cursor:pointer;color:var(--dim)">MAX <span id="u-bal">—</span></a></label>
+          <input type="text" id="amt" placeholder="0.0" inputmode="decimal">
+          <label>DURATION — <span id="dur-label">52 WEEKS</span></label>
+          <input type="range" id="dur" min="1" max="208" value="52">
+          <div class="row"><span>vTHSND on lock</span><b id="calc-power">0</b></div>
+          <div class="row"><span>unlocks</span><b id="calc-end">—</b></div>
+          <button class="act" id="btn-lock" disabled>CONNECT WALLET</button>
+          <button class="ghost" id="btn-withdraw">WITHDRAW EXPIRED LOCK</button>
+          <div id="msg"></div>
+        </div>
+        <div class="panel" style="margin-top:24px">
+          <div class="row" style="margin-top:0"><span>your locked balance</span><b id="u-locked">—</b></div>
+          <div class="row"><span>your vTHSND</span><b id="u-power">—</b></div>
+          <div class="row"><span>your share of stream</span><b id="u-share">—</b></div>
+          <div class="row"><span>your unlock date</span><b id="u-end">—</b></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em">YOUR FEE STREAM · CLAIMABLE WETH</div>
+          <div class="stream"><span id="u-earned">—</span> <small>WETH</small></div>
+          <div class="row"><span>≈ USD</span><b id="u-earned-usd">—</b></div>
+          <div class="row"><span>accrues on each fee epoch, pro-rata to your vTHSND</span></div>
+          <div class="steps">
+            <div class="step" id="st-1">1 · CLAIM WETH</div>
+            <div class="step" id="st-2">2 · SWAP → THSND</div>
+            <div class="step" id="st-3">3 · RE-LOCK</div>
+          </div>
+          <button class="act" id="btn-compound" disabled>COMPOUND · START AT STEP 1</button>
+          <button class="ghost" id="btn-claim">CLAIM ONLY</button>
+          <div class="note">Compounding today is a 3-step flow you control: claim your WETH, swap it for THSND on Aerodrome, re-lock to raise your vTHSND. A one-click auto-compounder contract is Phase 3 on the <a data-page="roadmap" style="text-decoration:underline;cursor:pointer">roadmap</a>.</div>
+          <div id="cmsg" style="margin-top:10px;font-size:12px;color:var(--dim);min-height:14px;word-break:break-all"></div>
+        </div>
+
+        <div class="panel" style="margin-top:24px">
+          <div class="k" style="color:var(--dim);font-family:var(--sans);font-weight:600;font-size:10px;letter-spacing:.18em">COMPOUNDING CALCULATOR</div>
+          <label>AMOUNT ($THSND)</label>
+          <input type="text" id="p-amt" value="1000" inputmode="decimal">
+          <label>RATE — <span id="p-apr-label">measured 30d APR</span></label>
+          <input type="text" id="p-apr" placeholder="0.0" inputmode="decimal">
+          <div class="row"><span>vTHSND at 208w lock</span><b id="p-power">—</b></div>
+          <div class="row"><span>1y fee share at this rate</span><b id="p-simple">—</b></div>
+          <div class="row"><span>1y if compounded weekly</span><b id="p-comp">—</b></div>
+          <div class="note">Pure arithmetic at the rate shown — the measured rate moves with fees and TVL and can be zero. Nothing here is a promise, a projection of profit, or advice.</div>
+        </div>
+      </div>
+    </div>
+
+    <h2>HOW THE MACHINE WORKS — A BEGINNER'S GUIDE</h2>
+    <details open>
+      <summary>WHAT IS THE VAULT?</summary>
+      <div class="body">The vault (contract name: <b>LatticeLock</b>) is a lock-box for $THSND. You choose an amount and a duration between <b>1 week and 4 years</b>. Your tokens sit in the contract until the unlock date, then you withdraw them. It is <b>non-custodial</b>: no admin function can move your principal — the code only ever returns it to you. In exchange for locking, you get two things: <b>vTHSND</b> (weight in the system) and a <b>share of protocol fees</b> paid in WETH.</div>
+    </details>
+    <details>
+      <summary>WHAT IS vTHSND?</summary>
+      <div class="body">vTHSND is your <b>weight</b>, not a token — it can't be transferred, sold, or faked. The formula is fixed at lock time: <code>vTHSND = amount × weeks / 208</code>. Lock 1,000 THSND for the full 208 weeks → 1,000 vTHSND. Lock the same 1,000 for 52 weeks → 250 vTHSND. Time is the price of weight: the longer you commit, the larger your slice of every fee epoch and the heavier your governance vote. When a lock expires, its governance weight goes to zero until you re-lock.</div>
+    </details>
+    <details>
+      <summary>WHAT DO I RECEIVE, EXACTLY?</summary>
+      <div class="body">Three things, all verifiable on-chain. <b>1) Fee share:</b> protocol fees arrive at the vault as WETH and are split pro-rata by vTHSND — your share = your vTHSND ÷ total vTHSND. Claim whenever you like; unclaimed fees don't expire. <b>2) Tier discounts:</b> the TierRegistry counts your effective balance (wallet THSND + <b>2×</b> locked THSND) and steps you through tiers at 10k / 100k / 1M — higher tiers pay lower protocol fees. <b>3) Governance weight</b> for protocol votes. Note what you do <b>not</b> receive: no new tokens are printed for you. Supply is fixed and burn-only, so rewards are real fees or nothing.</div>
+    </details>
+    <details>
+      <summary>HOW DO I USE IT? (STEP BY STEP)</summary>
+      <div class="body"><b>1.</b> Get $THSND on Aerodrome (BUY button up top — verify the address ends in <code>CFdb</code>). <b>2.</b> CONNECT your wallet (Base network). <b>3.</b> Enter an amount, drag the duration slider, and read the vTHSND preview. <b>4.</b> LOCK — two transactions the first time (approve, then lock). <b>5.</b> Watch your claimable WETH tick up each fee epoch. CLAIM it, or run the 3-step COMPOUND flow to roll it back into a bigger lock. <b>6.</b> After your unlock date, WITHDRAW returns your full principal plus any unclaimed fees. Topping up an existing lock: same-or-later end date required — you can extend, never shorten.</div>
+    </details>
+    <details>
+      <summary>WHY WOULD I WANT THIS?</summary>
+      <div class="body">Because it's the machine's alignment layer. Lockers are paid from <b>real usage</b> (WETH fees), not from inflation — THSND cannot be printed. Locked tokens also count <b>double</b> toward your execution tier, so serious users lock to trade cheaper. And burns permanently shrink supply while locks take float off the market — both are visible, on-chain, and this page charts them live. If you believe the venue gets used, the vault is how you sit on the fee side of that usage. If you don't, don't lock — locked means locked until expiry.</div>
+    </details>
+    <details>
+      <summary>WHAT ARE THE RISKS? READ THIS ONE.</summary>
+      <div class="body"><b>Unaudited code:</b> the contracts are verified on Basescan but have not yet passed an independent audit (it's Phase 1 on the roadmap). Smart-contract bugs can lose funds. <b>Locked means locked:</b> there is no early exit, no exceptions, even if price moves against you. <b>Variable fees:</b> the WETH stream depends entirely on protocol usage — it can be small or zero; the APR shown is measured history, not a promise. <b>Market risk:</b> THSND price can go down while locked. Only lock what you can afford to leave untouched for the full duration.</div>
+    </details>
+
+    <div class="links" style="margin-top:24px">
+      <a data-page="roadmap" style="cursor:pointer">SEE THE ROADMAP →</a>
+    </div>
+  </section>
+
+  <!-- ============================ BURN ============================ -->
+  <section class="page" id="page-burn">
+    <div class="shrine">
+      <div class="n" id="b-total">—</div>
+      <div class="l">PERMANENTLY DESTROYED</div>
+    </div>
+    <div class="sub" style="text-align:center">1.5% of every liquidation is market-bought and burned. Supply only goes down.</div>
+    <div class="chartbox" style="margin-bottom:40px">
+      <span class="tag">CUMULATIVE BURNED · THSND</span>
+      <div class="cv" id="b-chart" style="height:260px"></div>
+      <div class="state" id="b-chart-state">SYS: NO BURN EVENTS YET. THE ENGINE IS ARMED.</div>
+    </div>
+  </section>
+
+  <!-- ============================ MILLI ============================ -->
+  <section class="page" id="page-milli">
+    <h1>MILLI</h1>
+    <div class="sub">The thousandth trader — an agent portfolio where every holding and every trade is public. Building its track record in the open.</div>
+
+    <div id="mi-banner" style="border:1px solid var(--text);padding:14px 18px;margin-bottom:24px;font-size:12px;line-height:1.7">
+      <b>▮ SHADOW MODE — PAPER TRADING. NO REAL FUNDS.</b> MILLI trades a simulated $10,000 against real market prices to build a public track record before the audited vault opens (<a data-page="roadmap" style="text-decoration:underline;cursor:pointer">roadmap</a>, phase 3). Nothing here is yield, a promise, or an invitation to deposit.
+    </div>
+
+    <div class="grid tight">
+      <div class="cell"><div class="k" id="mi-nav-label">NAV · PAPER</div><div class="v" id="mi-nav">—</div></div>
+      <div class="cell"><div class="k">P&amp;L SINCE START</div><div class="v" id="mi-pnl">—</div></div>
+      <div class="cell"><div class="k">WETH EXPOSURE</div><div class="v" id="mi-expo">—</div></div>
+      <div class="cell"><div class="k">TRADES</div><div class="v" id="mi-trades">—</div></div>
+    </div>
+    <div class="grid tight">
+      <div class="cell"><div class="k">USDC · PAPER</div><div class="v" id="mi-usdc">—</div></div>
+      <div class="cell"><div class="k">LP SLEEVE (SIM)</div><div class="v" id="mi-lp">—</div></div>
+      <div class="cell"><div class="k">WETH · PAPER</div><div class="v" id="mi-weth">—</div></div>
+      <div class="cell"><div class="k">ETH PRICE FEED</div><div class="v" id="mi-px">—</div></div>
+      <div class="cell"><div class="k">LAST TICK</div><div class="v" id="mi-upd" style="font-size:13px">—</div></div>
+    </div>
+
+    <div class="chartbox" style="margin-bottom:40px">
+      <span class="tag">PAPER NAV · USD</span>
+      <div class="cv" id="mi-chart" style="height:280px"></div>
+      <div class="state" id="mi-chart-state">SYS: LOADING FEED…</div>
+    </div>
+
+    <h2>TRADE TAPE</h2>
+    <table id="mi-tape">
+      <tr><th>TIME (UTC)</th><th>SIDE</th><th>SIZE</th><th>PRICE</th><th>WHY</th></tr>
+    </table>
+    <div class="note" id="mi-tape-note"></div>
+
+    <h2>WHAT IS MILLI?</h2>
+    <div class="note" style="font-size:13px;line-height:1.9;max-width:760px">
+      MILLI is the agent that will run the THSND ecosystem's second vault: an ERC-4626 portfolio (USDC in, mTHSND shares out) that trades 24/7 through on-chain whitelists and caps — every position public by construction, because the portfolio is an address. Its fees (2% management · 15% over high-water mark · 0.25% exit, hard-capped in code) stream to vTHSND lockers as WETH and to the burn engine. The vault contracts are written and tested (23/23); they take real deposits only after an independent audit.<br><br>
+      <b>The v1 strategy is fully public:</b> 12/48-tick SMA momentum on ETH, max 50% exposure, moves in ≤10%-of-NAV steps (the real vault's per-trade cap), 0.30% simulated costs per side. No discretion, no black box — the code is the disclosure, and the shadow record you see here includes every losing trade.
+    </div>
+  </section>
+
+  <!-- ============================ DOCS ============================ -->
+  <section class="page" id="page-docs">
+    <h1>Docs</h1>
+    <div class="sub">Everything the machine does — and everything its keys can and cannot do. If a claim here can't be checked on-chain, it doesn't belong here.</div>
+
+    <h2 style="margin-top:0">TOKEN — $THSND</h2>
+    <table>
+      <tr><th>PROPERTY</th><th>FACT</th></tr>
+      <tr><td>SUPPLY</td><td>1,000,000,000 minted once at genesis to the treasury. <b>No mint function exists in the bytecode.</b></td></tr>
+      <tr><td>BURN</td><td><code style="background:var(--raise);padding:1px 5px">burn()</code> / <code style="background:var(--raise);padding:1px 5px">burnFrom()</code> reduce total supply forever. Every burn emits an on-chain event.</td></tr>
+      <tr><td>ADMIN</td><td><b>None.</b> The token has no owner. Nobody can mint, pause, blacklist, tax, or upgrade it. This is permanent.</td></tr>
+      <tr><td>STANDARD</td><td>ERC-20 + EIP-2612 permit (gasless approvals). Source verified on Basescan.</td></tr>
+    </table>
+
+    <h2>VAULT — LOCK MATH</h2>
+    <div class="note" style="margin:0 0 14px;font-size:13px;color:var(--text)">vTHSND = amount × weeks ÷ 208 &nbsp;·&nbsp; fixed at lock time, non-transferable, not a token</div>
+    <table>
+      <tr><th>LOCK 1,000 THSND FOR</th><th>vTHSND</th></tr>
+      <tr><td>1 week</td><td>4.8</td></tr>
+      <tr><td>26 weeks</td><td>125</td></tr>
+      <tr><td>52 weeks</td><td>250</td></tr>
+      <tr><td>104 weeks</td><td>500</td></tr>
+      <tr><td>208 weeks (max)</td><td>1,000</td></tr>
+    </table>
+    <div class="note">Rules: top-ups must keep the same or a later unlock date — you can extend, never shorten. After expiry, WITHDRAW returns full principal plus unclaimed fees. An expired lock has zero governance weight until re-locked. Fee accounting is the Synthetix accumulator pattern: each epoch splits pro-rata by vTHSND at that moment; unclaimed fees never expire.</div>
+
+    <h2>EXECUTION TIERS</h2>
+    <table>
+      <tr><th>TIER</th><th>EFFECTIVE BALANCE</th><th>PROTOCOL-FEE DISCOUNT</th></tr>
+      <tr><td>T1</td><td>below 10,000</td><td>standard (−0%)</td></tr>
+      <tr><td>T10</td><td>≥ 10,000</td><td>−25%</td></tr>
+      <tr><td>T100</td><td>≥ 100,000</td><td>−50%</td></tr>
+      <tr><td>T1000</td><td>≥ 1,000,000</td><td>−100%</td></tr>
+    </table>
+    <div class="note">Effective balance = wallet THSND + <b>2×</b> actively-locked THSND. Values are read live from the TierRegistry; thresholds are owner-tunable (see powers below), discounts are hard-capped at 100%.</div>
+
+    <h2>FEE FLOW</h2>
+    <div class="note" style="font-size:13px;line-height:1.9">Protocol fees arrive as WETH via <code style="background:var(--raise);padding:1px 5px">notifyReward()</code> and stream to lockers pro-rata by vTHSND. Only the vault owner (treasury Safe) or an appointed fee-notifier may push an epoch — the notifier is currently unset, so today every epoch comes from the Safe. Rewards are never minted: if no fees come in, lockers earn nothing. Supply cannot inflate to pay yield — that lever does not exist.</div>
+
+    <h2>SECURITY &amp; POWERS</h2>
+    <div class="note" style="margin:0 0 14px">Deployed July 2, 2026 · all four contracts source-verified on Basescan · every admin key and its exact limits below. Verify each row yourself — the addresses are in the contracts table on the terminal page.</div>
+    <table>
+      <tr><th>CONTRACT</th><th>ADMIN</th><th>ADMIN CAN</th><th>ADMIN CAN NEVER</th></tr>
+      <tr><td>TOKEN</td><td><b>nobody</b></td><td>nothing — zero admin functions</td><td>mint · pause · blacklist · tax · upgrade</td></tr>
+      <tr><td>VAULT</td><td>treasury Safe</td><td>appoint a fee-notifier · push WETH fee epochs · transfer ownership</td><td>touch locked principal · block or delay a withdrawal · shorten/extend anyone's lock · claw back rewards</td></tr>
+      <tr><td>TIERS</td><td>treasury Safe</td><td>retune tier thresholds &amp; discounts (≤100%, ascending only)</td><td>touch funds — it is a pure view layer</td></tr>
+      <tr><td>BURN ENGINE</td><td>treasury Safe + keepers</td><td>whitelist swap routes · appoint keepers · sweep stray non-routed tokens</td><td>move THSND out — THSND that enters can only burn · sweep THSND or routed assets · make arbitrary calls</td></tr>
+      <tr><td>MILLI VAULT</td><td>treasury Safe (guardian) + executor</td><td>executor: swap whitelisted assets via whitelisted adapters inside caps (10%/trade, 50%/day, 1% slippage, 20% cash buffer) · guardian: whitelists, caps, fees (hard-capped 3/30/1%), trading pause, unwind-to-USDC</td><td>pause or delay withdrawals · transfer assets out · exceed the coded fee ceilings · trade unlisted assets or routes</td></tr>
+      <tr><td>MILLI FEE SINK</td><td>treasury Safe + keeper</td><td>convert fee shares, split ≥40% lockers / ≥10% burn / ≤30% treasury</td><td>change the split floors · touch vault deposits</td></tr>
+    </table>
+    <div class="note" style="margin-top:12px"><b>MILLI status (deployed + wired July 3, 2026, source-verified):</b> launch caps active — $25,000 vault max, $2,000 per wallet. The fee plumbing is live (WETH whitelisted, one route, fees route to lockers + burn engine). It remains <b>inert in practice</b>: the trade executor is the treasury Safe and there are zero deposits, so nothing trades. The public agent still runs on <b>paper only</b> (see the MILLI tab). The contracts are <b>unaudited</b> — the caps exist precisely because of that. Deposits are possible but not invited; if you deposit anyway, size it like the experiment it is.</div>
+    <div class="note" style="line-height:1.9">
+      <b>Treasury, verified on-chain:</b> Safe <a href="https://basescan.org/address/0x539DE6F65dECEB2F491237e3DC030494E517877C" target="_blank" rel="noopener" style="text-decoration:underline">0x539D…877C</a> owns all admin keys, holds the undistributed supply and the Aerodrome LP position (LP is not locked or burned — disclosed, on the to-do list below).<br><br>
+      <b>▮ Honest gaps, in the open:</b> (1) The Safe currently has <b>one signer with threshold 1</b> — in practice a single key controls the treasury and every admin function above. Expanding the signer set is an open Phase-1 action item. (2) There are <b>no timelocks</b> — admin changes take effect immediately. (3) The contracts are <b>unaudited</b> — immutable and verified, but unreviewed by a third party. Audit is Phase 1 on the roadmap. Size your exposure to these facts, not to our copy.
+    </div>
+
+    <h2>RISK — PLAIN LANGUAGE</h2>
+    <div class="note" style="line-height:1.9;font-size:13px">Unaudited code can contain bugs that lose funds, and immutability means bugs can't be patched either. Locked means locked — no early exit exists, for anyone. The WETH fee stream depends entirely on protocol usage and can be zero. Liquidity is currently thin, so price is extremely volatile and large trades move it violently. Nothing on this site is an offer, a promise of yield, or financial advice.</div>
+
+    <div class="links" style="margin-top:24px">
+      <a data-page="vault" style="cursor:pointer">GO TO THE VAULT →</a>
+      <a data-page="roadmap" style="cursor:pointer">SEE THE ROADMAP →</a>
+    </div>
+  </section>
+
+  <!-- ============================ ROADMAP ============================ -->
+  <section class="page" id="page-roadmap">
+    <h1>Roadmap</h1>
+    <div class="sub">Order over dates. Each phase ships when it's ready — trust work first, growth second, automation third.</div>
+
+    <div class="phase">
+      <div class="ph"><span class="pt">PHASE 0 — GENESIS</span><span class="ps">SHIPPED · JULY 2026</span></div>
+      <ul>
+        <li class="done"><b>Contracts live on Base mainnet</b> — token, vault, burn engine, tier registry. Source verified.</li>
+        <li class="done"><b>THSND/USDC pool seeded on Aerodrome</b> — the market exists; price discovery is on.</li>
+        <li class="done"><b>First capital in the vault</b> — locks are live and earning fee-share weight.</li>
+        <li class="done"><b>thsnd.xyz</b> — this terminal: live on-chain stats, native charts, no trackers.</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="ph"><span class="pt">PHASE 1 — TRUST</span><span class="ps">NEXT UP</span></div>
+      <ul>
+        <li><b>Independent audit</b> of all four contracts — funded from protocol growth; report published in full, ugly parts included.</li>
+        <li class="done"><b>Security & powers page</b> — every admin key and its exact limits, honest gaps included. Live in <a data-page="docs" style="text-decoration:underline;cursor:pointer">DOCS</a>.</li>
+        <li class="done"><b>Docs hub</b> — mechanics, fee math, tier table, risk disclosures. Live in <a data-page="docs" style="text-decoration:underline;cursor:pointer">DOCS</a>.</li>
+        <li><b>Safe signer expansion</b> — treasury is currently a 1-of-1; move to a real multi-signer set.</li>
+        <li><b>Public analytics dashboard</b> (Dune) — burns, locks, vTHSND, WETH distributed. Independent of this site.</li>
+        <li><b>Listings</b> — DefiLlama adapter, DexScreener token info, CoinGecko application.</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="ph"><span class="pt">PHASE 2 — FLYWHEEL</span><span class="ps">NEXT</span></div>
+      <ul>
+        <li><b>Weekly fee epochs</b> — WETH pushed to the vault on a fixed Thursday cadence, with a public epoch recap.</li>
+        <li><b>Aerodrome gauge + voting incentives</b> — direct AERO emissions to THSND/USDC to deepen liquidity.</li>
+        <li><b>ETH zap-in</b> — one click: ETH → THSND → locked. Remove every step between intent and position.</li>
+        <li><b>Epoch notifications</b> — subscribe on Farcaster; every epoch and burn posted with the tx hash.</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <div class="ph"><span class="pt">PHASE 3 — AUTOMATION</span><span class="ps">LATER</span></div>
+      <ul>
+        <li class="done"><b>MILLI shadow feed</b> — the agent's public paper-trading record is live on the <a data-page="milli" style="text-decoration:underline;cursor:pointer">MILLI</a> tab. Contracts written + tested (23/23).</li>
+        <li><b>MILLI agent vault — real deposits</b> — ERC-4626 (USDC), every holding and trade public by construction; fees stream to vTHSND lockers and the burn engine. Opens only after an independent audit, capped at launch.</li>
+        <li><b>Auto-compounder</b> — opt-in relayer that claims your WETH, market-buys THSND, re-locks. One click, or none.</li>
+        <li><b>Bug bounty</b> (Immunefi) — standing reward for anyone who breaks it before someone else does.</li>
+        <li><b>Governance</b> — Snapshot voting weighted by vTHSND; treasury actions proposed in the open.</li>
+        <li><b>Quarterly transparency report</b> — fees in, burns done, treasury moves, all reconciled to chain.</li>
+      </ul>
+    </div>
+    <div class="note">Nothing above promises yield, price, or dates. The machine ships in the order that keeps depositors safe.</div>
+  </section>
+</main>
+
+<div id="wmodal" role="dialog" aria-label="Connect wallet">
+  <div class="box">
+    <div class="wt"><span>CONNECT WALLET</span><span id="wm-close">✕</span></div>
+    <div id="wm-list"></div>
+    <div id="wm-msg"></div>
+  </div>
+</div>
+
+<footer>
+  <div id="sys">SYS: initializing…</div>
+  <div>LIVE ON BASE · CONTRACTS UNAUDITED — AUDIT IS PHASE 1 · NOT AN OFFER OR SOLICITATION · <a href="/privacy.html" style="color:inherit">PRIVACY</a></div>
+</footer>
+
+<script>
+window.addEventListener("error",e=>{ const s=document.getElementById("sys"); if(s) s.textContent="SYS: JS ERROR — "+(e.message||"unknown"); });
+window.addEventListener("DOMContentLoaded", async () => {
+"use strict";
+/* ---- lib guard: retry alternate CDNs if a script failed ---- */
+async function need(g,urls){
+  if(window[g]) return true;
+  for(const u of urls){
+    try{ await new Promise((res,rej)=>{const s=document.createElement("script");s.src=u;s.onload=res;s.onerror=rej;document.head.appendChild(s);}); }catch{}
+    if(window[g]) return true;
+  }
+  return false;
+}
+const okEthers = await need("ethers",["https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js","https://unpkg.com/ethers@6.13.2/dist/ethers.umd.min.js"]);
+const okLWC = await need("LightweightCharts",["https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js","https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.min.js"]);
+if(!okEthers){ document.getElementById("sys").textContent="SYS: core library unreachable — check connection and reload."; return; }
+/* ================= constants ================= */
+const ADDR = {
+  token:"0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb",
+  lock: "0x1141F662b0647C2776Bb6A59B0ECA3Db481e6847",
+  burn: "0x81929143c44a8141A1d2C40dB3774F1B262674D2",
+  tier: "0x4056179e23E87d88f76381df54e458E529fdf7BA",
+  pool: "0xcacf70ae3ba1fa1dc16bea05e57ea90fef0657c0",
+  weth: "0x4200000000000000000000000000000000000006",
+  usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  ethUsdFeed:"0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+};
+const DEPLOY_BLOCK = 48117150;
+const CHAIN = 8453n;
+const MAX_WEEKS = 208;
+const TIERS = ["T1","T10","T100","T1000"];
+const GT_POOL = `https://api.geckoterminal.com/api/v2/networks/base/pools/${ADDR.pool}`;
+const BS_API = "https://base.blockscout.com/api";
+const swapUrl = (f,t)=>`https://aerodrome.finance/swap?from=${f}&to=${t}`;
+
+const $ = id => document.getElementById(id);
+const fmt = (v,d=0)=>Number(ethers.formatEther(v)).toLocaleString(undefined,{maximumFractionDigits:d});
+const usd = n => { n=Number(n)||0; return "$"+n.toLocaleString(undefined, n>=1000?{maximumFractionDigits:0} : n>=1?{maximumFractionDigits:2} : {maximumSignificantDigits:2}); };
+const px  = n => "$"+Number(n).toLocaleString(undefined,{maximumSignificantDigits:5});
+const cache = {
+  get(k){ try{ const x=JSON.parse(localStorage.getItem("thsnd:"+k)); return x??null; }catch{ return null; } },
+  set(k,v){ try{ localStorage.setItem("thsnd:"+k, JSON.stringify(v)); }catch{} },
+};
+
+/* ================= chain plumbing ================= */
+/* Base public RPCs reject JSON-RPC batches — batchMaxCount:1 sends plain parallel calls. */
+const RPCS = ["https://mainnet.base.org","https://base-rpc.publicnode.com","https://base.llamarpc.com"];
+let rpcIdx = 0, read = null;
+const ABI = {
+  token:["function balanceOf(address) view returns (uint256)","function totalSupply() view returns (uint256)","function totalBurned() view returns (uint256)","function approve(address,uint256) returns (bool)","function allowance(address,address) view returns (uint256)"],
+  lock:["function locks(address) view returns (uint128 amount,uint128 power,uint64 end)","function totalLocked() view returns (uint256)","function totalPower() view returns (uint256)","function lock(uint256,uint256)","function withdraw()","function claim()","function earned(address) view returns (uint256)"],
+  tier:["function tierOf(address) view returns (uint256)","function discountOf(address) view returns (uint256)"],
+  feed:["function latestAnswer() view returns (int256)"],
+};
+const R = {};
+function buildProviders(){
+  read = new ethers.JsonRpcProvider(RPCS[rpcIdx], undefined, {staticNetwork:true, batchMaxCount:1});
+  R.token=new ethers.Contract(ADDR.token,ABI.token,read);
+  R.lock =new ethers.Contract(ADDR.lock, ABI.lock, read);
+  R.tier =new ethers.Contract(ADDR.tier, ABI.tier, read);
+  R.feed =new ethers.Contract(ADDR.ethUsdFeed,ABI.feed,read);
+  R.weth =new ethers.Contract(ADDR.weth,ABI.token,read);
+  R.usdc =new ethers.Contract(ADDR.usdc,ABI.token,read);
+}
+buildProviders();
+const vaultIface = new ethers.Interface([
+  "event Locked(address indexed user,uint256 amount,uint256 power,uint256 end)",
+  "event Withdrawn(address indexed user,uint256 amount)",
+  "event RewardNotified(uint256 amount)",
+]);
+const tokenIface = new ethers.Interface(["event Burned(address indexed from,uint256 amount,uint256 newTotalSupply)"]);
+let signer=null, me=null;
+
+/* ================= nav ================= */
+function goto(page){
+  if(!$("page-"+page)) return;
+  document.querySelectorAll("nav a").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("visible"));
+  $("page-"+page).classList.add("visible");
+  try{ history.replaceState(null,"","#"+page); }catch{}
+  requestAnimationFrame(()=>Object.values(charts).forEach(c=>c&&c.timeScale().fitContent()));
+}
+document.querySelectorAll("[data-page]").forEach(a=>a.onclick=()=>goto(a.dataset.page));
+window.addEventListener("hashchange",()=>goto(location.hash.slice(1)));
+if(location.hash.length>1) goto(location.hash.slice(1));
+
+const SYS=[
+  "SYS: 1,000,000,000 at launch. never one more.",
+  "SYS: price is a social construct. burns are not.",
+  "SYS: rewards are fees, not inflation. supply only falls.",
+  "SYS: unaudited until phase 1 says otherwise. size accordingly.",
+  "SYS: t1000 tier detected? fees decline to exist.",
+];
+let si=0; setInterval(()=>{$("sys").textContent=SYS[si++%SYS.length];},8000);
+$("sys").textContent=SYS[0];
+
+/* ================= state ================= */
+const S = { price:0, ethUsd:0, supply:0, burned:0, locked:0, power:0, poolT:0, poolQ:0, fdv:0,
+            feesWeth:0, apr30:null, lastEpoch:null, gtLive:false };
+
+/* ================= charts (lightweight-charts, monochrome) ================= */
+const charts={}, series={};
+const CHART_OPTS = el => ({
+  autoSize:true, layout:{background:{color:"transparent"},textColor:"#8A8F98",fontFamily:"'JetBrains Mono',monospace",fontSize:10},
+  grid:{vertLines:{color:"#111"},horzLines:{color:"#111"}},
+  rightPriceScale:{borderColor:"#1F1F1F"}, timeScale:{borderColor:"#1F1F1F",timeVisible:true,secondsVisible:false},
+  crosshair:{vertLine:{color:"#333",labelBackgroundColor:"#141414"},horzLine:{color:"#333",labelBackgroundColor:"#141414"}},
+});
+function mkChart(id){
+  if(!window.LightweightCharts) return null;
+  const el=$(id); el.classList.remove("skeleton");
+  const c=LightweightCharts.createChart(el,CHART_OPTS(el));
+  charts[id]=c; return c;
+}
+function libDown(stateId){ const el=$(stateId).parentElement.querySelector(".cv"); el.classList.remove("skeleton"); chartState(stateId,"SYS: CHART LIB UNREACHABLE — DATA FEEDS REMAIN LIVE."); }
+function areaSeries(c,fmtType){
+  return c.addAreaSeries({lineColor:"#FFFFFF",topColor:"rgba(255,255,255,.14)",bottomColor:"rgba(255,255,255,0)",lineWidth:2,
+    priceFormat: fmtType==="px"?{type:"price",precision:10,minMove:1e-10}:{type:"volume"}});
+}
+function candleSeries(c){
+  return c.addCandlestickSeries({upColor:"#FFFFFF",downColor:"#000000",borderUpColor:"#FFFFFF",borderDownColor:"#8A8F98",wickUpColor:"#8A8F98",wickDownColor:"#8A8F98",
+    priceFormat:{type:"price",precision:10,minMove:1e-10}});
+}
+function chartState(id,txt){ const el=$(id); if(el) el.textContent=txt||""; if(el) el.style.display=txt?"flex":"none"; }
+
+/* price charts: candles (GT) or live on-chain sampled line */
+let hSeries=null,mSeries=null,hType=null,mType=null;
+function ensurePriceCharts(){
+  if(!charts["h-chart"]) mkChart("h-chart");
+  if(!charts["m-chart"]) mkChart("m-chart");
+}
+function setPriceData(kind,data){ // kind 'candles'|'line'
+  if(!window.LightweightCharts){ libDown("h-chart-state"); libDown("m-chart-state"); return; }
+  ensurePriceCharts();
+  if(hType!==kind){ if(hSeries) charts["h-chart"].removeSeries(hSeries); hSeries = kind==="candles"?candleSeries(charts["h-chart"]):areaSeries(charts["h-chart"],"px"); hType=kind; }
+  if(mType!==kind){ if(mSeries) charts["m-chart"].removeSeries(mSeries); mSeries = kind==="candles"?candleSeries(charts["m-chart"]):areaSeries(charts["m-chart"],"px"); mType=kind; }
+  hSeries.setData(data); mSeries.setData(data);
+  charts["h-chart"].timeScale().fitContent(); charts["m-chart"].timeScale().fitContent();
+  const tag = kind==="candles" ? "PRICE · GECKOTERMINAL" : "PRICE · ON-CHAIN FEED (LIVE SAMPLES)";
+  $("h-chart-tag").textContent=tag; $("m-chart-tag").textContent=tag;
+  chartState("h-chart-state", data.length? "": "SYS: FEED WARMING UP…");
+  chartState("m-chart-state", data.length? "": "SYS: FEED WARMING UP…");
+}
+
+/* ================= fast core refresh (single batched RPC round-trip) ================= */
+function paintCore(){
+  if(S.price){ $("h-price").textContent=px(S.price); $("m-price").textContent=px(S.price); }
+  if(S.fdv){ $("h-fdv").textContent=usd(S.fdv); $("m-fdv").textContent=usd(S.fdv); }
+  $("s-supply").textContent=S.supply?Number(S.supply).toLocaleString(undefined,{maximumFractionDigits:0}):"—";
+  $("s-burned").textContent=Number(S.burned).toLocaleString(undefined,{maximumFractionDigits:0});
+  $("s-locked").textContent=Number(S.locked).toLocaleString(undefined,{maximumFractionDigits:0});
+  $("s-power").textContent=Number(S.power).toLocaleString(undefined,{maximumFractionDigits:0});
+  $("b-total").textContent=Number(S.burned).toLocaleString(undefined,{maximumFractionDigits:0});
+  $("m-r0").textContent=Number(S.poolT).toLocaleString(undefined,{maximumFractionDigits:0});
+  $("m-r1").textContent=Number(S.poolQ).toLocaleString(undefined,{maximumFractionDigits:2});
+  $("m-liq").textContent=usd(2*S.poolQ);
+  if(S.ethUsd) $("m-eth").textContent=usd(S.ethUsd);
+  // vault stats
+  $("v-tvl").textContent=Number(S.locked).toLocaleString(undefined,{maximumFractionDigits:0});
+  if(S.price) $("v-tvlusd").textContent=usd(S.locked*S.price);
+  $("v-power").textContent=Number(S.power).toLocaleString(undefined,{maximumFractionDigits:0});
+  if(S.supply){ const pct=100*S.locked/S.supply; $("v-pct").textContent=pct.toLocaleString(undefined, pct>=0.01?{maximumFractionDigits:2}:{maximumSignificantDigits:2})+"%"; }
+  if(S.locked>0) $("v-avg").textContent=Math.round(MAX_WEEKS*S.power/S.locked)+" W";
+}
+async function refreshCore(){
+  const res = await Promise.allSettled([
+    R.token.totalSupply(),R.token.totalBurned(),R.lock.totalLocked(),R.lock.totalPower(),
+    R.token.balanceOf(ADDR.pool), R.usdc.balanceOf(ADDR.pool),
+    R.feed.latestAnswer(),
+  ]);
+  const [supply,burned,locked,power,poolT,poolQ,ethAns] = res.map(r=>r.status==="fulfilled"?r.value:null);
+  if(supply!=null) S.supply=+ethers.formatEther(supply);
+  if(burned!=null) S.burned=+ethers.formatEther(burned);
+  if(locked!=null) S.locked=+ethers.formatEther(locked);
+  if(power!=null)  S.power =+ethers.formatEther(power);
+  if(poolT!=null)  S.poolT =+ethers.formatEther(poolT);
+  if(poolQ!=null)  S.poolQ =+ethers.formatUnits(poolQ,6);
+  if(ethAns!=null) S.ethUsd=Number(ethAns)/1e8;
+  if(S.poolT>0&&S.poolQ>0) S.price=S.poolQ/S.poolT;
+  S.fdv=S.supply*S.price;
+  const fails=res.filter(r=>r.status==="rejected").length;
+  if(fails===0){ $("sys").textContent="SYS: chain feed ok · block-synced"; }
+  else if(fails>=4){ rpcIdx=(rpcIdx+1)%RPCS.length; buildProviders(); $("sys").textContent="SYS: rpc degraded — rotating endpoint."; }
+  paintCore(); cache.set("core",S);
+  samplePrice();
+}
+/* live on-chain price samples → fallback chart + persistence */
+function samplePrice(){
+  if(!S.price) return;
+  const arr=cache.get("pxsamples")||[];
+  const now=Math.floor(Date.now()/1000);
+  if(!arr.length || now-arr[arr.length-1].t>=90){ arr.push({t:now,p:S.price}); if(arr.length>2000) arr.shift(); cache.set("pxsamples",arr); }
+  if(!S.gtLive){
+    const data=arr.map(x=>({time:x.t,value:x.p}));
+    if(data.length>=2) setPriceData("line",data);
+    else { chartState("h-chart-state","SYS: LIVE FEED SAMPLING… candles appear once the indexer sees the pool."); chartState("m-chart-state","SYS: LIVE FEED SAMPLING…"); }
+  }
+}
+
+/* ================= GeckoTerminal enrichment (24h, volume, candles) ================= */
+let gtRange={tf:"hour",ag:1,limit:168};
+async function gfetch(url,ms=5000){
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),ms);
+  try{ const r=await fetch(url,{signal:ctl.signal,headers:{accept:"application/json"}}); clearTimeout(t);
+    if(!r.ok) throw new Error(r.status); return await r.json(); }
+  finally{ clearTimeout(t); }
+}
+async function refreshGT(){
+  try{
+    const j=await gfetch(GT_POOL);
+    const at=j.data.attributes;
+    const baseId=(j.data.relationships?.base_token?.data?.id||"").toLowerCase();
+    const isBase=baseId.endsWith(ADDR.token.toLowerCase());
+    const p=parseFloat(isBase?at.base_token_price_usd:at.quote_token_price_usd);
+    if(p){ S.price=p; S.fdv=S.supply*p; }
+    const ch=Number(at.price_change_percentage?.h24 ?? 0);
+    const chTxt=(ch>=0?"▲ ":"▼ ")+Math.abs(ch).toFixed(2)+"%";
+    $("m-change").textContent=chTxt; $("h-change").textContent=chTxt;
+    if(at.volume_usd?.h24!=null) $("m-vol").textContent=usd(at.volume_usd.h24);
+    paintCore();
+    $("mkt-sub").textContent="Routed via Aerodrome · data: on-chain + GeckoTerminal.";
+    await refreshCandles();
+  }catch(e){ /* not indexed yet — on-chain feed already painted */
+    $("mkt-sub").textContent="On-chain feed live. Candles load when the indexer picks up the pool.";
+  }
+}
+async function refreshCandles(){
+  try{
+    const {tf,ag,limit}=gtRange;
+    const j=await gfetch(`${GT_POOL}/ohlcv/${tf}?aggregate=${ag}&limit=${limit}&currency=usd&token=${ADDR.token.toLowerCase()}`);
+    const list=j.data?.attributes?.ohlcv_list||[];
+    if(!list.length) return;
+    const data=list.map(x=>({time:x[0],open:x[1],high:x[2],low:x[3],close:x[4]})).sort((a,b)=>a.time-b.time)
+                   .filter((x,i,a)=>i===0||x.time!==a[i-1].time);
+    S.gtLive=true; setPriceData("candles",data);
+  }catch(e){ /* keep on-chain line */ }
+}
+$("m-ranges").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+  $("m-ranges").querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  gtRange = {"15m":{tf:"minute",ag:15,limit:192},"1h":{tf:"hour",ag:1,limit:168},"4h":{tf:"hour",ag:4,limit:180},"1d":{tf:"day",ag:1,limit:180}}[b.dataset.r];
+  refreshCandles();
+});
+
+/* ================= vault + burn history from chain logs (Blockscout) ================= */
+async function bsLogs(address,topic0){
+  const u=`${BS_API}?module=logs&action=getLogs&fromBlock=${DEPLOY_BLOCK}&toBlock=latest&address=${address}&topic0=${topic0}`;
+  const j=await gfetch(u,8000);
+  return (j.status==="1"&&Array.isArray(j.result))?j.result:[];
+}
+let vSeriesObj=null,bSeriesObj=null,vMode="tvl",hist={tvl:[],fees:[],apr:[],burn:[]};
+function buildVaultSeries(lockEvs,wdEvs,feeEvs,burnEvs){
+  const now=Math.floor(Date.now()/1000);
+  // TVL
+  const evs=[...lockEvs.map(e=>({t:e.t,d:+e.amount})),...wdEvs.map(e=>({t:e.t,d:-e.amount}))].sort((a,b)=>a.t-b.t);
+  let run=0; const tvl=[{time:evs.length?evs[0].t-1:now-1,value:0}];
+  for(const e of evs){ run+=e.d; tvl.push({time:e.t,value:Math.max(run,0)}); }
+  tvl.push({time:now,value:S.locked||run});
+  hist.tvl=squash(tvl);
+  // fees cumulative + apr trailing 30d
+  let cum=0; const fees=[{time:evs.length?evs[0].t-1:now-1,value:0}]; const apr=[];
+  const fEvs=feeEvs.sort((a,b)=>a.t-b.t);
+  for(const f of fEvs){
+    cum+=f.amount; fees.push({time:f.t,value:cum});
+    const win=fEvs.filter(x=>x.t<=f.t&&x.t>f.t-30*86400).reduce((s,x)=>s+x.amount,0);
+    const tvlAt=tvl.filter(p=>p.time<=f.t).pop()?.value||0;
+    if(tvlAt>0&&S.price>0&&S.ethUsd>0) apr.push({time:f.t,value:100*(win*S.ethUsd*12.17)/(tvlAt*S.price)});
+  }
+  fees.push({time:now,value:cum});
+  S.feesWeth=cum; S.lastEpoch=fEvs.length?fEvs[fEvs.length-1].t:null;
+  const win30=fEvs.filter(x=>x.t>now-30*86400).reduce((s,x)=>s+x.amount,0);
+  S.apr30=(S.locked>0&&S.price>0&&S.ethUsd>0)?100*(win30*S.ethUsd*12.17)/(S.locked*S.price):0;
+  if(apr.length) apr.push({time:now,value:S.apr30});
+  hist.fees=squash(fees); hist.apr=squash(apr);
+  // burns
+  let bc=0; const burn=[{time:burnEvs.length?burnEvs[0].t-1:now-1,value:0}];
+  for(const b of burnEvs.sort((a,b)=>a.t-b.t)){ bc+=b.amount; burn.push({time:b.t,value:bc}); }
+  burn.push({time:now,value:S.burned||bc});
+  hist.burn=squash(burn);
+}
+function squash(pts){ const m=new Map(); for(const p of pts.sort((a,b)=>a.time-b.time)) m.set(p.time,p.value); return [...m.entries()].map(([time,value])=>({time,value})); }
+function paintVaultStats(){
+  $("v-fees").innerHTML=S.feesWeth.toLocaleString(undefined,{maximumFractionDigits:4})+" <small>WETH</small>";
+  $("v-apr").textContent=(S.apr30??0).toFixed(2)+"%";
+  if(!S.feesWeth) $("v-apr").innerHTML="0.00% <small>no epochs yet</small>";
+  $("v-epoch").textContent=S.lastEpoch?new Date(S.lastEpoch*1000).toISOString().slice(0,10):"—";
+  const apr=S.apr30??0; $("p-apr").placeholder=apr.toFixed(2); if(!$("p-apr").value) $("p-apr").value=apr.toFixed(2);
+  recalcProj();
+}
+function paintVaultChart(){
+  if(!window.LightweightCharts){ libDown("v-chart-state"); return; }
+  if(!charts["v-chart"]){ mkChart("v-chart"); vSeriesObj=areaSeries(charts["v-chart"]); }
+  const data=hist[vMode]||[];
+  const tags={tvl:"VAULT TVL · THSND",fees:"CUMULATIVE FEES · WETH",apr:"APR % · 30D TRAILING (AT CURRENT PRICES)"};
+  $("v-chart-tag").textContent=tags[vMode];
+  vSeriesObj.applyOptions({priceFormat:vMode==="fees"?{type:"price",precision:4,minMove:.0001}:vMode==="apr"?{type:"price",precision:2,minMove:.01}:{type:"volume"}});
+  vSeriesObj.setData(data);
+  charts["v-chart"].timeScale().fitContent();
+  chartState("v-chart-state",data.length>1?"":(vMode==="tvl"?"SYS: HISTORY SYNCING…":"SYS: NO FEE EPOCHS ON-CHAIN YET. STREAM ARMED."));
+}
+function paintBurnChart(){
+  if(hist.burn.length<=2&&!S.burned){ chartState("b-chart-state","SYS: NO BURN EVENTS YET. THE ENGINE IS ARMED."); return; }
+  if(!window.LightweightCharts){ libDown("b-chart-state"); return; }
+  if(!charts["b-chart"]){ mkChart("b-chart"); bSeriesObj=areaSeries(charts["b-chart"]); }
+  bSeriesObj.setData(hist.burn); charts["b-chart"].timeScale().fitContent(); chartState("b-chart-state","");
+}
+$("v-ranges").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+  $("v-ranges").querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  vMode=b.dataset.s; paintVaultChart();
+});
+async function refreshHistory(){
+  try{
+    const dec=(iface,name,l)=>{ try{ const p=iface.parseLog({topics:l.topics.filter(Boolean),data:l.data}); return p&&p.name===name?p:null; }catch{ return null; } };
+    const [lockedL,wdL,feeL,burnL]=await Promise.all([
+      bsLogs(ADDR.lock, vaultIface.getEvent("Locked").topicHash),
+      bsLogs(ADDR.lock, vaultIface.getEvent("Withdrawn").topicHash),
+      bsLogs(ADDR.lock, vaultIface.getEvent("RewardNotified").topicHash),
+      bsLogs(ADDR.token,tokenIface.getEvent("Burned").topicHash),
+    ]);
+    const ts=x=>{ const s=String(x??"0"); return s.startsWith("0x")?parseInt(s,16):parseInt(s,10); };
+    const mapEv=(ls,iface,name,field)=>ls.map(l=>{ const p=dec(iface,name,l); return p?{t:ts(l.timeStamp),amount:+ethers.formatEther(p.args[field])}:null; }).filter(Boolean);
+    buildVaultSeries(
+      mapEv(lockedL,vaultIface,"Locked","amount"),
+      mapEv(wdL,vaultIface,"Withdrawn","amount"),
+      mapEv(feeL,vaultIface,"RewardNotified","amount"),
+      mapEv(burnL,tokenIface,"Burned","amount"),
+    );
+    cache.set("hist",hist); cache.set("feesMeta",{f:S.feesWeth,a:S.apr30,e:S.lastEpoch});
+    paintVaultStats(); paintVaultChart(); paintBurnChart();
+  }catch(e){
+    chartState("v-chart-state","SYS: HISTORY API UNREACHABLE — STATS REMAIN LIVE.");
+  }
+}
+
+/* ================= MILLI shadow feed ================= */
+let milliLoaded=false, miSeries=null;
+async function loadMilli(){
+  try{
+    const j=await gfetch("milli-feed.json?v="+Math.floor(Date.now()/60000),6000);
+    const st=j.state||{};
+    if(j.mode==="live-sealed"){
+      $("mi-banner").innerHTML='<b>▮ LIVE — OPERATOR FUNDS ONLY. CLOSED TO DEPOSITS.</b> MILLI now trades the operator’s own money through the (unaudited) on-chain vault. The vault cap equals the operator’s seed, so third-party deposits are impossible — verify on the <a href="https://basescan.org/address/0xF925b09790035E0ef60Cd115eba7E8bDD10981d0" target="_blank" rel="noopener" style="text-decoration:underline">contract</a>. Every holding and trade remains public. Nothing here is yield, a promise, or an invitation to deposit.';
+      $("mi-nav-label").textContent="NAV · LIVE";
+    }
+    const nav=Number(st.nav||0), start=Number(j.startNav||10000);
+    $("mi-nav").textContent="$"+nav.toLocaleString(undefined,{maximumFractionDigits:2});
+    const pnl=100*(nav-start)/start;
+    $("mi-pnl").textContent=(pnl>=0?"▲ ":"▼ ")+Math.abs(pnl).toFixed(2)+"%";
+    const expo=nav>0?100*(Number(st.weth||0)*Number(st.px||0))/nav:0;
+    $("mi-expo").textContent=expo.toFixed(1)+"%";
+    $("mi-trades").textContent=(j.trades||[]).length;
+    $("mi-usdc").textContent=Number(st.usdc||0).toLocaleString(undefined,{maximumFractionDigits:2});
+    if($("mi-lp")) $("mi-lp").textContent = st.lp!=null ? "$"+Number(st.lp).toLocaleString(undefined,{maximumFractionDigits:2}) : "—";
+    $("mi-weth").textContent=Number(st.weth||0).toLocaleString(undefined,{maximumFractionDigits:4});
+    $("mi-px").textContent="$"+Number(st.px||0).toLocaleString(undefined,{maximumFractionDigits:2});
+    $("mi-upd").textContent=(st.updated||"—").replace("T"," ").slice(0,16);
+    // chart
+    const hist=(j.navHistory||[]).map(x=>({time:x.t,value:x.nav})).sort((a,b)=>a.time-b.time).filter((x,i,a)=>i===0||x.time!==a[i-1].time);
+    if(window.LightweightCharts&&hist.length){
+      if(!charts["mi-chart"]){ mkChart("mi-chart"); miSeries=charts["mi-chart"].addAreaSeries({lineColor:"#FFFFFF",topColor:"rgba(255,255,255,.14)",bottomColor:"rgba(255,255,255,0)",lineWidth:2,priceFormat:{type:"price",precision:0,minMove:1}}); }
+      miSeries.setData(hist); charts["mi-chart"].timeScale().fitContent();
+      chartState("mi-chart-state", hist.length>1?"":"SYS: GENESIS POINT ONLY — CHART DRAWS AS TICKS ACCUMULATE.");
+    }
+    // tape
+    const tape=$("mi-tape");
+    tape.querySelectorAll("tr:not(:first-child)").forEach(r=>r.remove());
+    const trades=(j.trades||[]).slice(-50).reverse();
+    for(const tr of trades){
+      const row=document.createElement("tr");
+      row.innerHTML=`<td>${new Date(tr.t*1000).toISOString().replace("T"," ").slice(0,16)}</td><td><b>${tr.side}</b></td><td>${Number(tr.usdc).toLocaleString()} USDC ↔ ${Number(tr.weth).toLocaleString(undefined,{maximumFractionDigits:4})} WETH</td><td>$${Number(tr.px).toLocaleString()}</td><td class="addr" style="font-size:11px">${tr.reason||""}</td>`;
+      tape.appendChild(row);
+    }
+    $("mi-tape-note").textContent = trades.length? `showing latest ${trades.length} — full history in the public feed (milli-feed.json).` : "no trades yet — MILLI is in its 48-tick warmup, collecting samples before it's allowed to trade.";
+    milliLoaded=true;
+  }catch(e){
+    chartState("mi-chart-state","SYS: FEED NOT PUBLISHED YET — the agent starts ticking soon.");
+    $("mi-tape-note").textContent="feed unavailable.";
+  }
+}
+const _goto=goto;
+goto=function(page){ _goto(page); if(page==="milli"&&!milliLoaded) loadMilli(); };
+window.addEventListener("hashchange",()=>{ if(location.hash==="#milli"&&!milliLoaded) loadMilli(); });
+if(location.hash==="#milli") loadMilli();
+
+/* ================= wallet — EIP-6963 picker + WalletConnect + mobile deeplinks ================= */
+/* WalletConnect QR needs a (free) project ID from dashboard.reown.com — paste it here to enable: */
+const WC_PROJECT_ID = "1beddc3867b7de5b142c25f769492211";
+const SITE_URL = "https://thsnd.xyz";
+function msg(t,err){ const m=$("msg"); m.textContent=t; m.style.color=err?"#FFFFFF":"var(--dim)"; }
+function cmsg(t,err){ const m=$("cmsg"); m.textContent=t; m.style.color=err?"#FFFFFF":"var(--dim)"; }
+function wmsg(t){ $("wm-msg").textContent=t; }
+
+const eip6963=[];
+window.addEventListener("eip6963:announceProvider",e=>{
+  if(e?.detail?.info?.uuid && !eip6963.find(p=>p.info.uuid===e.detail.info.uuid)) eip6963.push(e.detail);
+});
+window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+const isMobile=/android|iphone|ipad|ipod/i.test(navigator.userAgent);
+const DEEPLINKS=[
+  ["METAMASK",`https://metamask.app.link/dapp/${SITE_URL.replace("https://","")}`],
+  ["COINBASE WALLET",`https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(SITE_URL)}`],
+  ["TRUST WALLET",`https://link.trustwallet.com/open_url?url=${encodeURIComponent(SITE_URL)}`],
+];
+
+function openWModal(){
+  const list=$("wm-list"); list.innerHTML=""; wmsg("");
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  const add=(label,icon,fn)=>{
+    const b=document.createElement("button"); b.className="wopt";
+    b.innerHTML=(icon?`<img src="${icon}" alt="">`:`<span class="sq"></span>`)+`<span>${label}</span>`;
+    b.onclick=fn; list.appendChild(b);
+  };
+  setTimeout(()=>{ // let announces land
+    eip6963.forEach(p=>add(p.info.name.toUpperCase(),p.info.icon,()=>connectWith(p.provider)));
+    if(!eip6963.length && window.ethereum) add("INJECTED WALLET",null,()=>connectWith(window.ethereum));
+    if(WC_PROJECT_ID) add("WALLETCONNECT · QR",null,connectWalletConnect);
+    if(!eip6963.length && !window.ethereum){
+      if(isMobile){
+        wmsg("open this site inside your wallet's built-in browser:");
+        DEEPLINKS.forEach(([n,u])=>add(n+" ↗",null,()=>window.open(u,"_blank")));
+      } else wmsg("no wallet extension detected. install MetaMask / Coinbase Wallet / OKX, or open on your phone's wallet browser."+(WC_PROJECT_ID?"":""));
+    }
+    if(!WC_PROJECT_ID) $("wm-msg").textContent+=($("wm-msg").textContent?" · ":"")+"walletconnect qr activates once the project id is set (one line, free — dashboard.reown.com).";
+  },120);
+  $("wmodal").classList.add("open");
+}
+$("wm-close").onclick=()=>$("wmodal").classList.remove("open");
+$("wmodal").onclick=e=>{ if(e.target.id==="wmodal") $("wmodal").classList.remove("open"); };
+$("wallet").onclick=()=>{ if(me){ goto("vault"); return; } openWModal(); };
+
+async function ensureBase(bp,p1193){
+  const net=await bp.getNetwork();
+  if(net.chainId===CHAIN) return true;
+  try{ await bp.send("wallet_switchEthereumChain",[{chainId:"0x2105"}]); return true; }
+  catch(err){
+    const code=err?.error?.code??err?.code;
+    if(code===4902){
+      await bp.send("wallet_addEthereumChain",[{chainId:"0x2105",chainName:"Base",nativeCurrency:{name:"Ether",symbol:"ETH",decimals:18},rpcUrls:["https://mainnet.base.org"],blockExplorerUrls:["https://basescan.org"]}]);
+      return true;
+    }
+    return false;
+  }
+}
+async function finishConnect(p1193){
+  const bp=new ethers.BrowserProvider(p1193,"any");
+  if(!await ensureBase(bp,p1193)){ wmsg("switch your wallet to the Base network and retry."); return; }
+  signer=await bp.getSigner(); me=await signer.getAddress();
+  $("wallet").textContent=me.slice(0,6)+"…"+me.slice(-4);
+  $("btn-lock").disabled=false; $("btn-lock").textContent="LOCK";
+  $("btn-compound").disabled=false;
+  $("wmodal").classList.remove("open");
+  p1193.on?.("accountsChanged",a=>{ if(!a?.length){ me=null;signer=null;$("wallet").textContent="CONNECT"; $("btn-lock").disabled=true;$("btn-lock").textContent="CONNECT WALLET";$("btn-compound").disabled=true; } else finishConnect(p1193); });
+  p1193.on?.("chainChanged",()=>finishConnect(p1193));
+  refreshUser();
+}
+async function connectWith(p1193){
+  try{
+    wmsg("requesting account…");
+    await p1193.request({method:"eth_requestAccounts"});
+    await finishConnect(p1193);
+  }catch(e){ wmsg(e?.shortMessage||e?.message||"connection rejected."); }
+}
+let wcMod=null;
+async function loadWC(){
+  if(wcMod) return wcMod;
+  const urls=[
+    "https://esm.sh/@walletconnect/ethereum-provider@2.17.0?bundle",
+    "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm",
+  ];
+  for(const u of urls){
+    try{ const m=await import(u); const EP=m?.EthereumProvider||m?.default?.EthereumProvider||m?.default;
+      if(EP?.init){ wcMod=EP; return EP; } }catch(e){}
+  }
+  return null;
+}
+async function connectWalletConnect(){
+  try{
+    wmsg("loading walletconnect…");
+    const EP=await loadWC();
+    if(!EP){ wmsg("walletconnect library unreachable — use an installed wallet or your phone's wallet browser."); return; }
+    wmsg("opening qr session…");
+    const p=await EP.init({projectId:WC_PROJECT_ID,chains:[8453],showQrModal:true,rpcMap:{8453:RPCS[0]},
+      metadata:{name:"THOUSAND",description:"$THSND — burn-only token + vTHSND vault on Base",url:SITE_URL,icons:[SITE_URL+"/assets/thsnd-mark-256.png"]}});
+    await p.connect();
+    await finishConnect(p);
+  }catch(e){ wmsg(e?.shortMessage||e?.message||"walletconnect session cancelled."); }
+}
+let myBal=0n;
+async function refreshUser(){
+  if(!me) return;
+  try{
+    const [bal,l,earned,tier,disc]=await Promise.all([
+      R.token.balanceOf(me),R.lock.locks(me),R.lock.earned(me),R.tier.tierOf(me),R.tier.discountOf(me)
+    ]);
+    myBal=bal;
+    $("u-bal").textContent=fmt(bal);
+    const e=+ethers.formatEther(earned);
+    $("u-earned").textContent=e.toLocaleString(undefined,{maximumFractionDigits:6});
+    $("u-earned-usd").textContent=S.ethUsd?("$"+(e*S.ethUsd).toLocaleString(undefined,{maximumFractionDigits:2})):"—";
+    $("u-tier").textContent=TIERS[Number(tier)]??tier.toString();
+    $("u-disc").textContent="-"+(Number(disc)/100)+"%";
+    $("u-locked").textContent=fmt(l.amount);
+    $("u-power").textContent=fmt(l.power);
+    const share=S.power>0?100*(+ethers.formatEther(l.power))/S.power:0;
+    $("u-share").textContent=share?share.toLocaleString(undefined,{maximumFractionDigits:2})+"%":"—";
+    $("u-end").textContent=l.end>0n?new Date(Number(l.end)*1000).toISOString().slice(0,10):"—";
+  }catch(e){}
+}
+setInterval(refreshUser,15000);
+$("amt-max").onclick=()=>{ if(myBal>0n){ $("amt").value=ethers.formatEther(myBal); recalc(); } };
+
+/* lock calculator */
+function recalc(){
+  const w=Number($("dur").value);
+  $("dur-label").textContent=w+(w===1?" WEEK":" WEEKS");
+  const amt=parseFloat($("amt").value)||0;
+  $("calc-power").textContent=(amt*w/MAX_WEEKS).toLocaleString(undefined,{maximumFractionDigits:2});
+  $("calc-end").textContent=new Date(Date.now()+w*7*864e5).toISOString().slice(0,10);
+}
+$("dur").oninput=recalc; $("amt").oninput=recalc; recalc();
+
+/* compounding calculator (pure arithmetic, labeled) */
+function recalcProj(){
+  const a=parseFloat($("p-amt").value)||0;
+  const r=(parseFloat($("p-apr").value)||0)/100;
+  $("p-power").textContent=a.toLocaleString(undefined,{maximumFractionDigits:2});
+  $("p-simple").textContent=(a*r).toLocaleString(undefined,{maximumFractionDigits:2})+" THSND-eq";
+  $("p-comp").textContent=(a*Math.pow(1+r/52,52)-a).toLocaleString(undefined,{maximumFractionDigits:2})+" THSND-eq";
+}
+$("p-amt").oninput=recalcProj; $("p-apr").oninput=recalcProj;
+
+/* ================= transactions ================= */
+$("btn-lock").onclick = async () => {
+  if(!signer) return;
+  try{
+    const amt=ethers.parseEther($("amt").value||"0");
+    if(amt<=0n){ msg("enter an amount",true); return; }
+    const dur=BigInt($("dur").value)*7n*86400n;
+    const tokenW=new ethers.Contract(ADDR.token,ABI.token,signer);
+    const lockW=new ethers.Contract(ADDR.lock,ABI.lock,signer);
+    const allowance=await R.token.allowance(me,ADDR.lock);
+    if(allowance<amt){ msg("approving…"); await (await tokenW.approve(ADDR.lock,amt)).wait(); }
+    msg("locking…");
+    const tx=await lockW.lock(amt,dur); await tx.wait();
+    msg("locked. tx "+tx.hash.slice(0,10)+"…");
+    stepDone(3); refreshCore(); refreshUser(); refreshHistory();
+  }catch(e){ msg(e.shortMessage||e.message,true); }
+};
+$("btn-withdraw").onclick = async () => {
+  if(!signer){ msg("connect wallet first",true); return; }
+  try{
+    const lockW=new ethers.Contract(ADDR.lock,ABI.lock,signer);
+    msg("withdrawing…");
+    const tx=await lockW.withdraw(); await tx.wait();
+    msg("principal withdrawn."); refreshCore(); refreshUser(); refreshHistory();
+  }catch(e){ msg(e.shortMessage||e.message,true); }
+};
+async function doClaim(quiet){
+  const lockW=new ethers.Contract(ADDR.lock,ABI.lock,signer);
+  cmsg("claiming…");
+  const tx=await lockW.claim(); await tx.wait();
+  cmsg("WETH claimed. tx "+tx.hash.slice(0,10)+"…");
+  refreshUser();
+}
+$("btn-claim").onclick=async()=>{ if(!signer){ cmsg("connect wallet first",true); return; } try{ await doClaim(); }catch(e){ cmsg(e.shortMessage||e.message,true); } };
+
+/* compound stepper */
+let step=0;
+function stepDone(n){ step=Math.max(step,n); for(let i=1;i<=3;i++) $("st-"+i).classList.toggle("done",i<=step);
+  $("btn-compound").textContent = step>=3?"COMPOUNDED ▮ RUN AGAIN":step===2?"COMPOUND · STEP 3: RE-LOCK":step===1?"COMPOUND · STEP 2: SWAP":"COMPOUND · START AT STEP 1";
+  if(step>=3) setTimeout(()=>{step=0;stepDone(0);},6000);
+}
+$("btn-compound").onclick=async()=>{
+  if(!signer){ cmsg("connect wallet first",true); return; }
+  try{
+    if(step===0){ await doClaim(); stepDone(1); cmsg("step 1 done — now swap your WETH for THSND."); }
+    else if(step===1){ window.open(swapUrl(ADDR.weth,ADDR.token),"_blank"); stepDone(2); cmsg("swap opened on Aerodrome. come back and re-lock."); }
+    else if(step===2){ goto("vault"); $("amt").focus(); cmsg("enter the amount you bought and press LOCK."); }
+  }catch(e){ cmsg(e.shortMessage||e.message,true); }
+};
+$("st-1").onclick=()=>$("btn-compound").click();
+$("st-2").onclick=()=>{ window.open(swapUrl(ADDR.weth,ADDR.token),"_blank"); if(step<2)stepDone(Math.max(step,1)); };
+$("st-3").onclick=()=>{ $("amt").focus(); };
+
+/* contract-address copy chips */
+document.querySelectorAll(".ca").forEach(el=>{
+  el.onclick=async()=>{
+    const b=el.querySelector("b");
+    try{ await navigator.clipboard.writeText(ADDR.token); const old=b.textContent; b.textContent="COPIED ▮"; setTimeout(()=>{b.textContent=old;},1600); }
+    catch{ el.querySelector(".full").textContent=ADDR.token; b.textContent="SELECT"; }
+  };
+});
+
+/* buy/sell — pool is THSND/USDC, so prefill the one-hop route */
+$("btn-buy").onclick =()=>window.open(swapUrl(ADDR.usdc,ADDR.token),"_blank");
+$("btn-sell").onclick=()=>window.open(swapUrl(ADDR.token,ADDR.usdc),"_blank");
+$("h-buy").onclick  =()=>window.open(swapUrl(ADDR.usdc,ADDR.token),"_blank");
+
+/* ================= boot: cached paint → live ================= */
+(function boot(){
+  const c=cache.get("core"); if(c) Object.assign(S,c,{gtLive:false});
+  const h=cache.get("hist"); if(h) hist=h;
+  const fm=cache.get("feesMeta"); if(fm){ S.feesWeth=fm.f||0; S.apr30=fm.a; S.lastEpoch=fm.e; }
+  if(c){ paintCore(); }
+  if(h){ paintVaultStats(); paintVaultChart(); paintBurnChart(); }
+  const samples=cache.get("pxsamples")||[];
+  if(samples.length>=2) setPriceData("line",samples.map(x=>({time:x.t,value:x.p})));
+  refreshCore().then(()=>{ refreshGT(); refreshHistory(); });
+  setInterval(refreshCore,15000);
+  setInterval(refreshGT,30000);
+  setInterval(refreshHistory,120000);
+})();
+});
+</script>
+</body>
+</html>
