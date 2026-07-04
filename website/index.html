@@ -280,6 +280,7 @@ LIQUIDATIONS ─▶ 1.5% MARKET-BUY ───▶ <b>[ BURN ENGINE ]</b> ─▶ S
       <a href="https://dexscreener.com/base/0xcacf70ae3ba1fa1dc16bea05e57ea90fef0657c0" target="_blank" rel="noopener">DEXSCREENER ↗</a>
       <a href="https://fomo.family/tokens/base/0xf7aa829ed31fe30834e56348e9cd3fbb4687cfdb" target="_blank" rel="noopener">FOMO ↗</a>
       <a href="https://basescan.org/token/0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb" target="_blank" rel="noopener">BASESCAN ↗</a>
+      <a href="#" id="addTokenToWallet" title="Add THSND to your wallet with the logo">+ WALLET</a>
     </div>
   </section>
 
@@ -1578,6 +1579,26 @@ $("h-buy").onclick  =()=>window.open(swapUrl(ADDR.usdc,ADDR.token),"_blank");
   setInterval(refreshHistory,120000);
 })();
 });
+</script>
+<script>
+(function(){
+  var el = document.getElementById("addTokenToWallet");
+  if (!el) return;
+  el.addEventListener("click", async function(e){
+    e.preventDefault();
+    if (!window.ethereum) { el.textContent = "SYS: NO WALLET DETECTED"; setTimeout(function(){ el.textContent = "+ WALLET"; }, 2500); return; }
+    try {
+      await window.ethereum.request({ method: "wallet_watchAsset", params: { type: "ERC20", options: {
+        address: "0xF7aa829ed31fE30834E56348e9CD3fBb4687CFdb",
+        symbol: "THSND",
+        decimals: 18,
+        image: "https://thsnd.xyz/assets/thsnd-mark-256.png"
+      } } });
+      el.textContent = "SYS: ADDED";
+      setTimeout(function(){ el.textContent = "+ WALLET"; }, 2500);
+    } catch (err) { /* user dismissed */ }
+  });
+})();
 </script>
 </body>
 </html>
