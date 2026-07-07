@@ -2,8 +2,8 @@
   "mode": "shadow",
   "started": "2026-07-03T02:01:24Z",
   "startNav": 10000,
-  "usdc": 7000,
-  "weth": 0,
+  "usdc": 5995.906584984516,
+  "weth": 0.5624746512324209,
   "prices": [
     1701.85,
     1705.1761,
@@ -51,7 +51,8 @@
     1812.57,
     1799.36,
     1762.71,
-    1772.34
+    1772.34,
+    1779.78
   ],
   "navHistory": [
     {
@@ -293,6 +294,11 @@
       "t": 1783412872,
       "nav": 10034.54,
       "px": 1772.34
+    },
+    {
+      "t": 1783425442,
+      "nav": 10037.92,
+      "px": 1779.78
     }
   ],
   "trades": [
@@ -303,17 +309,26 @@
       "px": 1728.45,
       "reason": "deploy 30% of NAV to WETH/USDC LP — est 10% APR (simulated, disclosed), IL priced exactly",
       "navAfter": 9995.5
+    },
+    {
+      "t": 1783425442,
+      "side": "BUY",
+      "usdc": 1004.09,
+      "weth": 0.562475,
+      "px": 1779.78,
+      "reason": "fast SMA 1781.99 > slow 1759.67 → target 50% WETH",
+      "navAfter": 10037.92
     }
   ],
-  "ticks": 47,
+  "ticks": 48,
   "lp": {
     "entryPx": 1728.45,
     "k": 72.05114942385458,
-    "fees": 1.2459735010784727,
+    "fees": 1.280686964967639,
     "opened": 1783094935,
     "basis": 3000
   },
-  "costsPaid": 4.5,
-  "lpFeesEarned": 1.2459735010784727,
-  "wethBasisUsd": 0
+  "costsPaid": 7.512280245046453,
+  "lpFeesEarned": 1.280686964967639,
+  "wethBasisUsd": 1004.0934150154844
 }
