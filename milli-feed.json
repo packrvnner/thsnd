@@ -2,8 +2,8 @@
   "mode": "shadow",
   "started": "2026-07-03T02:01:24Z",
   "startNav": 10000,
-  "usdc": 5844.757781622464,
-  "weth": 0.423761095950939,
+  "usdc": 6630.043821317469,
+  "weth": 0,
   "navHistory": [
     {
       "t": 1783044084,
@@ -1169,6 +1169,11 @@
       "t": 1784895794,
       "nav": 9776.09,
       "px": 1882.24
+    },
+    {
+      "t": 1784905215,
+      "nav": 9744.19,
+      "px": 1858.71
     }
   ],
   "trades": [
@@ -1530,49 +1535,51 @@
       "px": 1882.24,
       "reason": "fast SMA 1889.63 ≤ slow 1904.06 → target 0% WETH",
       "navAfter": 9776.09
+    },
+    {
+      "t": 1784905215,
+      "side": "SELL",
+      "usdc": 785.29,
+      "weth": 0.423761,
+      "px": 1858.71,
+      "reason": "fast SMA 1884.11 ≤ slow 1904.08 → target 0% WETH",
+      "navAfter": 9744.19
     }
   ],
-  "ticks": 232,
+  "ticks": 233,
   "lp": {
     "entryPx": 1728.45,
     "k": 72.05114942385458,
-    "fees": 7.785724539035649,
+    "fees": 7.821273735095641,
     "opened": 1783094935,
     "basis": 3000
   },
-  "costsPaid": 117.00204003652532,
-  "lpFeesEarned": 7.785724539035649,
-  "wethBasisUsd": 792.1627169186543,
+  "costsPaid": 119.36498699649023,
+  "lpFeesEarned": 7.821273735095641,
+  "wethBasisUsd": 0,
   "state": {
-    "usdc": 5844.76,
-    "weth": 0.423761,
-    "lp": 3133.71,
+    "usdc": 6630.04,
+    "weth": 0,
+    "lp": 3114.15,
     "positions": [
       {
         "name": "WETH/USDC LP",
         "size": "50/50 pool share",
         "entry": "$3000 @ ETH 1728.45",
         "opened": 1783094935,
-        "value": 3133.71,
-        "pnl": 133.71,
-        "note": "incl. fees +$7.79 · IL priced exactly"
-      },
-      {
-        "name": "WETH · momentum",
-        "size": "0.4238 WETH",
-        "entry": "avg $1869.36",
-        "value": 797.62,
-        "pnl": 5.46
+        "value": 3114.15,
+        "pnl": 114.15,
+        "note": "incl. fees +$7.82 · IL priced exactly"
       }
     ],
-    "costs": 117,
-    "lpFees": 7.7857,
+    "costs": 119.36,
+    "lpFees": 7.8213,
     "warmup": null,
-    "status": "down 2.24% since start · $117 paid in simulated costs · $7.79 earned in simulated LP fees · momentum sleeve LONG",
+    "status": "down 2.56% since start · $119.36 paid in simulated costs · $7.82 earned in simulated LP fees · momentum sleeve FLAT",
     "lpAprEst": 0.1,
     "strategy": "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
-    "px": 1882.24,
-    "nav": 9776.09,
-    "updated": "2026-07-24T12:23:14.181Z"
+    "px": 1858.71,
+    "nav": 9744.19,
+    "updated": "2026-07-24T15:00:15.014Z"
   }
 }
