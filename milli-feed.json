@@ -4979,6 +4979,11 @@
       "t": 1791496515,
       "nav": 10557.79,
       "px": 2477.2
+    },
+    {
+      "t": 1791510846,
+      "nav": 10559.82,
+      "px": 2479.95
     }
   ],
   "trades": [
@@ -6359,40 +6364,40 @@
       "navAfter": 10516.97
     }
   ],
-  "ticks": 994,
+  "ticks": 995,
   "lp": {
     "entryPx": 1728.45,
     "k": 72.05114942385458,
-    "fees": 37.29222718420779,
+    "fees": 37.333612736279036,
     "opened": 1783094935,
     "basis": 3000
   },
   "costsPaid": 433.93780313588496,
-  "lpFeesEarned": 37.29222718420779,
+  "lpFeesEarned": 37.333612736279036,
   "wethBasisUsd": 0,
   "state": {
     "usdc": 6934.4,
     "weth": 0,
-    "lp": 3623.38,
+    "lp": 3625.42,
     "positions": [
       {
         "name": "WETH/USDC LP",
         "size": "50/50 pool share",
         "entry": "$3000 @ ETH 1728.45",
         "opened": 1783094935,
-        "value": 3623.38,
-        "pnl": 623.38,
-        "note": "incl. fees +$37.29 · IL priced exactly"
+        "value": 3625.42,
+        "pnl": 625.42,
+        "note": "incl. fees +$37.33 · IL priced exactly"
       }
     ],
     "costs": 433.94,
-    "lpFees": 37.2922,
+    "lpFees": 37.3336,
     "warmup": null,
-    "status": "up 5.58% since start · $433.94 paid in simulated costs · $37.29 earned in simulated LP fees · momentum sleeve FLAT",
+    "status": "up 5.60% since start · $433.94 paid in simulated costs · $37.33 earned in simulated LP fees · momentum sleeve FLAT",
     "lpAprEst": 0.1,
     "strategy": "v2: momentum + 30% LP sleeve (LP simulated, fees estimated, IL exact)",
-    "px": 2477.2,
-    "nav": 10557.79,
-    "updated": "2026-10-08T21:55:15.653Z"
+    "px": 2479.95,
+    "nav": 10559.82,
+    "updated": "2026-10-09T01:54:06.533Z"
   }
 }
